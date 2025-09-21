@@ -1,7 +1,9 @@
-from pydantic import BaseModel
 from fastapi import FastAPI
+from pydantic import BaseModel
 import xgboost as xgb
 import pandas as pd
+import sys
+from fastapi.middleware.cors import CORSMiddleware
 
 # 1. Create an instance of the FastAPI class
 app = FastAPI(
@@ -23,6 +25,19 @@ class RockfallFeatures(BaseModel):
 # Load the trained XGBoost model
 model = xgb.XGBClassifier()
 model.load_model('rockfall_predictor_xgb.json')
+
+# This allows your React app (running on localhost:5173) to make requests to your API
+origins = [
+    "http://localhost:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"], # Allows all methods
+    allow_headers=["*"], # Allows all headers
+)
 
 # 2. Define a path operation decorator for the root URL
 @app.get("/")
