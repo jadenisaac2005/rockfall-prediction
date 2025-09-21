@@ -4,5 +4,5 @@ venv/
 # Python cache
 __pycache__/
 
-# Saved Models (optional, good if they become large)
+# Saved Models
 *.json
