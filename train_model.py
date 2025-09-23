@@ -9,7 +9,7 @@ import sys # Add this to your imports at the top of the file
 
 try:
     # Make sure the path points to the data subfolder
-    df = pd.read_csv('data/placeholder_data.csv')
+    df = pd.read_csv('data/synthetic_slope_stability_dataset.csv')
     print("Data loaded successfully!")
     print(df.head())
 except FileNotFoundError:
@@ -19,10 +19,15 @@ except FileNotFoundError:
 # 3. PREPARE DATA FOR MODELING
 # For this first model, we will use only the numeric features.
 # 'timestamp' and 'slope_id' will be ignored for now.
+#'temperature_c', 'strain', 'humidity_percent', 'wind_speed_m_s' can also be added later.
 features = [
-    'displacement_cm', 'strain', 'pore_pressure_kPa',
-    'rainfall_mm', 'temperature_c', 'slope_angle', 'image_crack_score'
+    'slope_angle',
+    'rainfall_last_24h',
+    'displacement_rate',
+    'pore_pressure',
+    'image_crack_score'
 ]
+
 target = 'rockfall_event'
 
 X = df[features]
