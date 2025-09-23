@@ -56,12 +56,17 @@ source venv/bin/activate  # On Windows: .\\venv\\Scripts\\activate
 # Install all required Python packages
 pip install -r requirements.txt
 
+IMPORTANT: Configure your credentials
+# Open the main.py file and add your Twilio Account SID, Auth Token,
+# and phone numbers in the CONFIGURATION section.
+
 # Launch the FastAPI server
 uvicorn main:app --reload
 ```
 Leave this terminal running. The API is now live at `http://127.0.0.1:8000`.
 
 ### 2. Frontend Launch
+
 The frontend is a self-contained HTML file.
 
 1. Navigate to the project folder in your file explorer.
@@ -69,20 +74,6 @@ The frontend is a self-contained HTML file.
 2. Open the `dashboard.html` file directly in your web browser (like Chrome or Firefox).
 
 The dashboard should load and immediately connect to your running backend, populating the map and allowing you to make predictions.
-
-### 3. (Optional) Run the Alert Worker
-To run the automated SMS alert system:
-
-1. Open a new terminal and navigate to the project directory.
-
-2. Activate the virtual environment: source `venv/bin/activate`.
-
-3. Edit the `alert_worker.py` file and add your Twilio credentials.
-
-4. Run the script:
-```bash
-python alert_worker.py
-```
 
 ## 🔮 Future Work
 
