@@ -15,8 +15,7 @@ Rockfalls in open-pit mines pose a significant threat to personnel safety and ca
 
 * **⚡ Real-Time Prediction API:** A high-performance backend built with **FastAPI** that serves AI model predictions in milliseconds.
 * **🧠 Machine Learning Core:** Utilizes a trained **XGBoost** model to analyze multi-source data and calculate rockfall probabilities.
-* **🗺️ Interactive Dashboard:** A single-page web application built with **React** that allows users to perform "what-if" analysis using input sliders and see live predictions.
-* **📍 Live Risk Map:** An integrated **Leaflet.js** map that displays real-time, color-coded risk levels for different zones across the mine site.
+* **🗺️ Interactive Dashboard:** A single-page web application built with **HTML** that allows users to perform "what-if" analysis using input sliders and see live predictions.
 * **📲 Automated Alert System:** A background worker script that continuously monitors high-risk zones and can send SMS alerts via **Twilio** when a critical threshold is breached.
 
 ## 🛠️ Technology Stack
@@ -25,15 +24,13 @@ Rockfalls in open-pit mines pose a significant threat to personnel safety and ca
 | ------------- | -------------------------------------------------- |
 | **Backend** | Python, FastAPI, Uvicorn                           |
 | **AI Model** | XGBoost, Pandas, Scikit-learn                      |
-| **Frontend** | HTML, CSS, JavaScript, React (via CDN), Babel      |
-| **Mapping** | Leaflet.js                                         |
+| **Frontend** | HTML, CSS,  Babel                                |
 | **Alerting** | Twilio                                             |
 | **Environment** | `venv` for Python, `pyenv` for version management  |
 
 ## 🏃‍♀️ How to Run the Project
 
-This project consists of three parts: the **Backend API**, the **Frontend Dashboard**, and the optional **Alert Worker**.
-
+This project consists of two parts: the **Backend API**, and the **Frontend Dashboard**
 ### Prerequisites
 
 * Python 3.11 (managed via `pyenv` is recommended)
@@ -72,7 +69,7 @@ The frontend is a self-contained HTML file.
 
 2. Open the `dashboard.html` file directly in your web browser (like Chrome or Firefox).
 
-The dashboard should load and immediately connect to your running backend, populating the map and allowing you to make predictions.
+The dashboard should load and immediately connect to your running backend, allowing you to make predictions.
 
 ## 🔮 Future Work
 
