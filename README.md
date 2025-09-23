@@ -6,8 +6,7 @@ An intelligent, end-to-end system designed to predict and prevent rockfall incid
 
 Here is a preview of the interactive dashboard that provides mine planners with at-a-glance risk assessments.
 
-*(**Action required:** Please replace the line above with a screenshot of your `dashboard.html` in action!)*
-
+![Dashboard Screenshot](https://github.com/jadenisaac2005/rockfall-prediction-sih25/blob/fc7b38049efff57c5008c23ff8405bac36c3ea3a/media/Dashboard%20Screenshot.jpg)
 ## 🎯 Problem Statement
 
 Rockfalls in open-pit mines pose a significant threat to personnel safety and can cause costly operational disruptions. This project addresses the need for a proactive monitoring system that can identify patterns preceding rockfall events and provide timely warnings for preventive action.
