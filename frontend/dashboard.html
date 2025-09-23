@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rockfall Prediction Dashboard</title>
+
+    <!-- React and Babel for running React directly in the browser -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+    <!-- Leaflet for the interactive map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Basic Styling for the Dashboard -->
+    <style>
+        body {
+            background-color: #f0f2f5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            margin: 0;
+            color: #333;
+        }
+        #root {
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            margin: 2rem;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .prediction-form {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group label {
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            text-transform: capitalize;
+        }
+        .predict-button {
+            margin-top: 1.5rem;
+            padding: 0.75rem 1.5rem;
+            width: 100%;
+            font-size: 1rem;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .predict-button:hover {
+            background-color: #0056b3;
+        }
+        .result-container {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+        }
+        .result-container .high-risk {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .result-container .low-risk {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .map-container {
+            margin-bottom: 2rem;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #e0e0e0;
+        }
+        h1, h3 {
+            color: #1a202c;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+
+        const { useState, useEffect, useRef } = React;
+
+        // --- Component 1: PredictionForm ---
+        function PredictionForm({ onPrediction }) {
+            const [features, setFeatures] = useState({
+                slope_angle: 40.0,
+                rainfall_last_24h: 100.0,
+                displacement_rate: 2.0,
+                pore_pressure: 150.0,
+                image_crack_score: 0.5,
+            });
+
+            const handleSliderChange = (e) => {
+                const { name, value } = e.target;
+                setFeatures(prevFeatures => ({
+                    ...prevFeatures,
+                    [name]: parseFloat(value),
+                }));
+            };
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                fetch("http://127.0.0.1:8000/predict", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(features),
+                })
+                .then(response => response.json())
+                .then(data => onPrediction(data))
+                .catch(error => {
+                    console.error("Error making prediction:", error);
+                    onPrediction({ error: "Failed to get prediction." });
+                });
+            };
+
+            return (
+                <form onSubmit={handleSubmit} className="prediction-form">
+                    <h3>Input Parameters</h3>
+                    <div className="form-grid">
+                        {Object.keys(features).map(key => (
+                            <div key={key} className="form-group">
+                                <label>{key.replace(/_/g, ' ')}: {features[key]}</label>
+                                <input
+                                    type="range"
+                                    name={key}
+                                    value={features[key]}
+                                    onChange={handleSliderChange}
+                                    min={0}
+                                    max={key === 'pore_pressure' ? 300 : (key === 'rainfall_last_24h' ? 200 : 60)}
+                                    step={0.1}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                    <button type="submit" className="predict-button">Predict Risk</button>
+                </form>
+            );
+        }
+
+        // --- Component 2: RiskMap ---
+        function RiskMap() {
+            const mapRef = useRef(null);
+            const markersRef = useRef({});
+
+            useEffect(() => {
+                // Initialize map only once
+                if (!mapRef.current) {
+                    mapRef.current = L.map('map').setView([12.9716, 77.5946], 14);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    }).addTo(mapRef.current);
+                }
+
+                const getRiskColor = (probability) => {
+                    if (probability > 0.75) return 'red';
+                    if (probability > 0.5) return 'orange';
+                    return 'green';
+                };
+
+                const createCustomIcon = (color) => {
+                    return new L.Icon({
+                        iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
+                        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                        iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+                    });
+                };
+
+                const fetchData = () => {
+                    fetch("http://127.0.0.1:8000/risk-map")
+                        .then(res => res.json())
+                        .then(data => {
+                            data.forEach(zone => {
+                                const { zone_id, coords, name, probability } = zone;
+                                const popupContent = `<b>${name}</b><br />Risk Probability: ${(probability * 100).toFixed(2)}%`;
+                                const icon = createCustomIcon(getRiskColor(probability));
+
+                                if (markersRef.current[zone_id]) {
+                                    // Update existing marker
+                                    markersRef.current[zone_id].setLatLng(coords).setIcon(icon).setPopupContent(popupContent);
+                                } else {
+                                    // Create new marker
+                                    const newMarker = L.marker(coords, { icon: icon }).addTo(mapRef.current).bindPopup(popupContent);
+                                    markersRef.current[zone_id] = newMarker;
+                                }
+                            });
+                        })
+                        .catch(err => console.error("Error fetching map data:", err));
+                };
+
+                fetchData();
+                const interval = setInterval(fetchData, 5000);
+                return () => clearInterval(interval);
+            }, []);
+
+            return (
+                <div className="map-container">
+                    <h3>Real-Time Risk Map</h3>
+                    <div id="map" style={{ height: '500px', width: '100%' }}></div>
+                </div>
+            );
+        }
+
+        // --- Main App Component ---
+        function App() {
+            const [predictionResult, setPredictionResult] = useState(null);
+
+            const handlePrediction = (result) => {
+                setPredictionResult(result);
+            };
+
+            return (
+                <div className="container">
+                    <h1>⛏️ Rockfall Prediction Dashboard</h1>
+                    <RiskMap />
+                    <div className="form-and-result">
+                        <PredictionForm onPrediction={handlePrediction} />
+                        {predictionResult && (
+                            <div className="result-container">
+                                <h3>Prediction Result</h3>
+                                {predictionResult.error ? (
+                                    <p className="error">{predictionResult.error}</p>
+                                ) : (
+                                    <div>
+                                        <p className={predictionResult.prediction === 1 ? 'high-risk' : 'low-risk'}>
+                                            Risk Level: {predictionResult.prediction === 1 ? 'High Risk' : 'Low Risk'}
+                                        </p>
+                                        <p>
+                                            Probability of Rockfall: {(predictionResult.probability_of_rockfall * 100).toFixed(2)}%
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // Render the App to the DOM
+        ReactDOM.render(<App />, document.getElementById('root'));
+
+    </script>
+
+</body>
+</html>
