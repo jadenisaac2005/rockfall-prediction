@@ -6,3 +6,6 @@ __pycache__/
 
 # Saved Models
 *.json
+
+#.env
+.env

@@ -32,6 +32,11 @@
             --border-color: rgba(68, 68, 68, 0.4);
             --mouse-x: 50%;
             --mouse-y: 50%;
+            /* --- Risk Colors --- */
+            --risk-low: #28a745;
+            --risk-guarded: #ffc107;
+            --risk-elevated: #fd7e14;
+            --risk-critical: #dc3545;
         }
 
         body.light-mode {
@@ -75,12 +80,7 @@
         }
 
         .dynamic-background {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;
             background-size: 200% 200%, 200% 200%, 100px 100px;
             background-position: var(--mouse-x) var(--mouse-y), calc(100% - var(--mouse-x)) calc(100% - var(--mouse-y)), 0 0;
             background-image:
@@ -91,216 +91,101 @@
             transition: background-position 0.1s ease-out, background-image 0.3s ease;
         }
 
-        @keyframes backgroundPan {
-            0% { background-position: 0% 0%, 100% 100%, 0 0; }
-            50% { background-position: 100% 100%, 0% 0%, 0 0; }
-            100% { background-position: 0% 0%, 100% 100%, 0 0; }
-        }
+        @keyframes backgroundPan { 0% { background-position: 0% 0%, 100% 100%, 0 0; } 50% { background-position: 100% 100%, 0% 0%, 0 0; } 100% { background-position: 0% 0%, 100% 100%, 0 0; } }
 
         .navbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 2rem;
-            background-color: var(--navbar-glass-bg);
-            backdrop-filter: blur(15px);
-            border-bottom: 1px solid var(--border-color);
-            z-index: 1000;
-            box-sizing: border-box;
+            position: fixed; top: 0; left: 0; width: 100%; display: flex;
+            justify-content: space-between; align-items: center; padding: 1rem 2rem;
+            background-color: var(--navbar-glass-bg); backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--border-color); z-index: 1000; box-sizing: border-box;
             transition: background-color 0.3s ease, border-color 0.3s ease;
         }
-        .navbar-title {
-            font-size: 1.2rem;
-            font-weight: 400;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
+        .navbar-title { font-size: 1.2rem; font-weight: 400; letter-spacing: 2px; text-transform: uppercase; }
         .navbar-button {
-            background-color: transparent;
-            color: var(--secondary-text);
-            border: 1px solid var(--border-color);
-            padding: 0.5rem 1rem;
-            font-weight: 400;
-            cursor: pointer;
-            transition: background-color 0.2s, color 0.2s;
-            border-radius: 5px;
+            background-color: transparent; color: var(--secondary-text); border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem; font-weight: 400; cursor: pointer;
+            transition: background-color 0.2s, color 0.2s; border-radius: 5px;
         }
-        .navbar-button:hover {
-            background-color: var(--accent-color);
-            color: var(--dark-bg);
-        }
+        .navbar-button:hover { background-color: var(--accent-color); color: var(--dark-bg); }
 
         .hero {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            height: 100vh;
-            padding: 0 2rem;
-            box-sizing: border-box;
-            scroll-snap-align: center;
+            display: flex; align-items: center; justify-content: center; text-align: center;
+            height: 100vh; padding: 0 2rem; box-sizing: border-box; scroll-snap-align: center;
         }
-        .hero-title {
-            font-size: 5rem;
-            font-weight: 200;
-            letter-spacing: 2px;
-            margin: 0;
-            text-transform: uppercase;
-        }
+        .hero-title { font-size: 5rem; font-weight: 200; letter-spacing: 2px; margin: 0; text-transform: uppercase; }
         .hero-subtitle {
-            font-size: 1.2rem;
-            font-weight: 300;
-            color: var(--secondary-text);
-            max-width: 600px;
-            margin: 1.5rem auto 0 auto;
-            line-height: 1.7;
+            font-size: 1.2rem; font-weight: 300; color: var(--secondary-text);
+            max-width: 600px; margin: 1.5rem auto 0 auto; line-height: 1.7;
         }
 
         .main-content {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 6rem 0;
-            background-color: var(--main-glass-bg);
-            backdrop-filter: blur(15px);
-            border-top: 1px solid var(--border-color);
-            scroll-snap-align: center;
-            height: 115vh;
-            box-sizing: border-box;
+            display: flex; justify-content: center; align-items: center; padding: 6rem 0;
+            background-color: var(--main-glass-bg); backdrop-filter: blur(15px);
+            border-top: 1px solid var(--border-color); scroll-snap-align: center;
+            height: 115vh; box-sizing: border-box;
             transition: background-color 0.3s ease, border-color 0.3s ease;
         }
 
         .container {
-            max-width: 800px;
-            width: 100%;
-            margin: 0 2rem;
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            padding: 2.5rem;
-            background-color: transparent;
-            backdrop-filter: blur(10px);
+            max-width: 800px; width: 100%; margin: 0 2rem;
+            border: 1px solid var(--border-color); border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); padding: 2.5rem;
+            background-color: transparent; backdrop-filter: blur(10px);
             transition: border-color 0.3s ease;
         }
 
         h3 {
-            color: var(--primary-text);
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            font-weight: 400;
-            font-size: 1.1rem;
-            margin-bottom: 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 1rem;
+            color: var(--primary-text); text-transform: uppercase; letter-spacing: 1.5px;
+            font-weight: 400; font-size: 1.1rem; margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;
             transition: color 0.3s ease, border-color 0.3s ease;
         }
 
         .prediction-form {
-            padding: 2rem;
-            background-color: var(--card-glass-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            backdrop-filter: blur(8px);
+            padding: 2rem; background-color: var(--card-glass-bg); border: 1px solid var(--border-color);
+            border-radius: 10px; backdrop-filter: blur(8px);
             transition: background-color 0.3s ease, border-color 0.3s ease;
         }
 
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 1.2rem;
-        }
-
+        .form-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+        .form-group { display: flex; flex-direction: column; gap: 1.2rem; }
         .form-group label {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            font-weight: 400;
-            color: var(--secondary-text);
-            letter-spacing: 0.8px;
-            font-size: 1rem;
-            text-transform: capitalize;
+            display: flex; justify-content: space-between; align-items: baseline;
+            font-weight: 400; color: var(--secondary-text); letter-spacing: 0.8px;
+            font-size: 1rem; text-transform: capitalize;
         }
 
         .predict-button {
-            margin-top: 2.5rem;
-            padding: 0.8rem 1.8rem;
-            width: 100%;
-            font-size: 1.1rem;
-            background-color: transparent;
-            color: var(--accent-color);
-            border: 1px solid var(--accent-color);
-            cursor: pointer;
-            transition: background-color 0.2s, color 0.2s;
-            font-family: 'Jost', sans-serif;
-            font-weight: 500;
-            text-transform: uppercase;
-            border-radius: 8px;
+            margin-top: 2.5rem; padding: 0.8rem 1.8rem; width: 100%; font-size: 1.1rem;
+            background-color: transparent; color: var(--accent-color); border: 1px solid var(--accent-color);
+            cursor: pointer; transition: background-color 0.2s, color 0.2s;
+            font-family: 'Jost', sans-serif; font-weight: 500; text-transform: uppercase; border-radius: 8px;
         }
-
-        .predict-button:hover {
-            background-color: var(--accent-color);
-            color: var(--dark-bg);
-        }
-
-        .predict-button:disabled {
-            color: var(--secondary-text);
-            border-color: var(--border-color);
-            cursor: wait;
-        }
-
-        .predict-button:disabled:hover {
-            background-color: transparent;
-        }
+        .predict-button:hover { background-color: var(--accent-color); color: var(--dark-bg); }
+        .predict-button:disabled { color: var(--secondary-text); border-color: var(--border-color); cursor: wait; }
+        .predict-button:disabled:hover { background-color: transparent; }
 
         .result-container {
-            margin-top: 2.5rem;
-            padding: 2rem;
-            background-color: var(--card-glass-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            text-align: center;
-            backdrop-filter: blur(8px);
-            transition: background-color 0.3s ease, border-color 0.3s ease;
+            margin-top: 2.5rem; padding: 2rem; background-color: var(--card-glass-bg);
+            border: 1px solid var(--border-color); border-radius: 10px; text-align: center;
+            backdrop-filter: blur(8px); transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        .result-container p { font-size: 1.1rem; margin: 0.8rem 0; letter-spacing: 0.5px; }
+
+        .risk-level {
+            font-weight: 500;
+            text-transform: uppercase;
         }
 
         .inline-input {
-            background: transparent;
-            border: none;
-            color: var(--accent-color);
-            font-family: 'Jost', sans-serif;
-            font-weight: 400;
-            font-size: 1rem;
-            width: 80px;
-            padding: 2px 5px;
-            border-bottom: 1px solid transparent;
-            transition: background-color 0.2s, border-color 0.2s;
-            text-align: right;
+            background: transparent; border: none; color: var(--accent-color);
+            font-family: 'Jost', sans-serif; font-weight: 400; font-size: 1rem;
+            width: 80px; padding: 2px 5px; border-bottom: 1px solid transparent;
+            transition: background-color 0.2s, border-color 0.2s; text-align: right;
         }
-        .inline-input:focus,
-        .inline-input:hover {
-            background-color: rgba(255, 255, 255, 0.05);
-            border-bottom-color: var(--border-color);
-            outline: none;
-            border-radius: 4px;
-        }
-
-        body.light-mode .inline-input:focus,
-        body.light-mode .inline-input:hover {
-        background-color: rgba(0, 0, 0, 0.05);
-        }
-
-        .inline-input::-webkit-outer-spin-button,
-        .inline-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .inline-input:focus, .inline-input:hover { background-color: rgba(255, 255, 255, 0.05); border-bottom-color: var(--border-color); outline: none; border-radius: 4px; }
+        body.light-mode .inline-input:focus, body.light-mode .inline-input:hover { background-color: rgba(0, 0, 0, 0.05); }
+        .inline-input::-webkit-outer-spin-button, .inline-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         .inline-input[type=number] { -moz-appearance: textfield; }
 
         input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; margin: 0; padding: 0; }
@@ -311,65 +196,33 @@
         body.light-mode input[type=range]::-webkit-slider-thumb:hover { background-color: #333333; }
 
         .site-footer {
-            padding: 1.5rem;
-            text-align: center;
-            color: var(--secondary-text);
-            font-size: 0.85rem;
-            border-top: 1px solid var(--border-color);
-            background-color: var(--footer-glass-bg);
-            backdrop-filter: blur(15px);
-            box-sizing: border-box;
-            letter-spacing: 0.5px;
-            z-index: 1;
-            position: relative;
+            padding: 1.5rem; text-align: center; color: var(--secondary-text); font-size: 0.85rem;
+            border-top: 1px solid var(--border-color); background-color: var(--footer-glass-bg);
+            backdrop-filter: blur(15px); box-sizing: border-box; letter-spacing: 0.5px;
+            z-index: 1; position: relative;
         }
 
         .theme-toggle-button {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            border: 1px solid var(--border-color);
-            background-color: var(--navbar-glass-bg);
-            backdrop-filter: blur(10px);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1001;
+            position: fixed; bottom: 2rem; right: 2rem; width: 50px; height: 50px;
+            border-radius: 50%; border: 1px solid var(--border-color); background-color: var(--navbar-glass-bg);
+            backdrop-filter: blur(10px); cursor: pointer; display: flex; align-items: center;
+            justify-content: center; z-index: 1001;
             transition: background-color 0.3s ease, border-color 0.3s ease;
         }
-        .theme-toggle-button:hover {
-            border-color: var(--accent-color);
-        }
+        .theme-toggle-button:hover { border-color: var(--accent-color); }
         .theme-toggle-button svg {
-            width: 24px;
-            height: 24px;
+            width: 24px; height: 24px; position: absolute;
             transition: fill 0.3s ease, stroke 0.3s ease, transform 0.4s cubic-bezier(0.445, 0.05, 0.55, 0.95);
-            position: absolute;
         }
-        .theme-toggle-button svg.moon {
-            fill: var(--secondary-text);
-            stroke: none;
-        }
-        .theme-toggle-button:hover svg.moon {
-            fill: var(--accent-color);
-        }
-        .theme-toggle-button svg.sun {
-            stroke: var(--secondary-text);
-            fill: none;
-        }
-        .theme-toggle-button:hover svg.sun {
-            stroke: var(--accent-color);
-        }
+        .theme-toggle-button svg.moon { fill: var(--secondary-text); stroke: none; }
+        .theme-toggle-button:hover svg.moon { fill: var(--accent-color); }
+        .theme-toggle-button svg.sun { stroke: var(--secondary-text); fill: none; }
+        .theme-toggle-button:hover svg.sun { stroke: var(--accent-color); }
 
         .theme-toggle-button .moon { transform: scale(0) rotate(90deg); }
         .theme-toggle-button .sun { transform: scale(1) rotate(0deg); }
         body.light-mode .theme-toggle-button .moon { transform: scale(1) rotate(0deg); }
         body.light-mode .theme-toggle-button .sun { transform: scale(0) rotate(-90deg); }
-
     </style>
 </head>
 <body>
@@ -377,16 +230,145 @@
     <div id="root"></div>
 
     <script type="text/babel">
+
         const { useState, useEffect } = React;
 
-        function Navbar() {
+        // --- ThresholdSettings Component ---
+        function ThresholdSettings({ thresholds, onThresholdChange }) {
+            const defaultThresholds = { guarded: 0.45, elevated: 0.70, critical: 0.95 };
+            const [localThresholds, setLocalThresholds] = useState({ ...thresholds });
+
+            useEffect(() => { setLocalThresholds({ ...thresholds }); }, [thresholds]);
+
+            const handleInput = (e) => {
+                const { name, value } = e.target;
+                const numValue = value === '' ? 0 : parseFloat(value);
+                setLocalThresholds(prev => ({ ...prev, [name]: numValue }));
+                onThresholdChange(name, numValue);
+            };
+
+            const handleSave = async (e) => {
+                e.preventDefault();
+                // Send POST to backend to update thresholds
+                try {
+                    const res = await fetch("http://127.0.0.1:8000/set-thresholds", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            guarded: localThresholds.guarded,
+                            elevated: localThresholds.elevated,
+                            critical: localThresholds.critical
+                        })
+                    });
+                    const data = await res.json();
+                    console.log("Saved thresholds:", data);
+                } catch (err) {
+                    console.error("Failed to update thresholds:", err);
+                }
+            };
+
+            const handleReset = async (e) => {
+                e.preventDefault();
+                setLocalThresholds(defaultThresholds);
+                // Update parent state
+                Object.entries(defaultThresholds).forEach(([k, v]) => onThresholdChange(k, v));
+                // Send POST to backend to reset thresholds
+                try {
+                    const res = await fetch("http://127.0.0.1:8000/set-thresholds", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(defaultThresholds)
+                    });
+                    const data = await res.json();
+                    console.log("Thresholds reset:", data);
+                } catch (err) {
+                    console.error("Failed to reset thresholds:", err);
+                }
+            };
+
             return (
-                <nav className="navbar">
-                    <div className="navbar-title">RPS</div>
-                    <button className="navbar-button">About</button>
-                </nav>
+                <div className="threshold-settings" style={{
+                    margin: '2.5rem 0 2rem 0',
+                    padding: '2rem',
+                    background: 'var(--card-glass-bg)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '10px',
+                    backdropFilter: 'blur(8px)',
+                    color: 'var(--primary-text)'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+                        <h3 style={{ margin: 0 }}>Risk Threshold Settings</h3>
+                        <button
+                            type="button"
+                            title="Reset to default thresholds"
+                            onClick={handleReset}
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                padding: 0,
+                                marginLeft: '0.5rem',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                height: '28px',
+                                width: '28px',
+                                borderRadius: '50%',
+                                transition: 'background 0.2s',
+                            }}
+                            className="reset-thresholds-btn"
+                        >
+                            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M17.657 6.343A8 8 0 1 0 19 11" stroke="var(--risk-low)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                <polyline points="17 2 17 7 12 7" stroke="var(--risk-low)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                        <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            Guarded Threshold
+                            <input
+                                type="number"
+                                name="guarded"
+                                min="0" max="1" step="0.01"
+                                value={localThresholds.guarded}
+                                onChange={handleInput}
+                                className="inline-input"
+                                style={{ marginLeft: '1rem', width: '80px' }}
+                            />
+                        </label>
+                        <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            Elevated Threshold
+                            <input
+                                type="number"
+                                name="elevated"
+                                min="0" max="1" step="0.01"
+                                value={localThresholds.elevated}
+                                onChange={handleInput}
+                                className="inline-input"
+                                style={{ marginLeft: '1rem', width: '80px' }}
+                            />
+                        </label>
+                        <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            Critical Threshold
+                            <input
+                                type="number"
+                                name="critical"
+                                min="0" max="1" step="0.01"
+                                value={localThresholds.critical}
+                                onChange={handleInput}
+                                className="inline-input"
+                                style={{ marginLeft: '1rem', width: '80px' }}
+                            />
+                        </label>
+                        <button type="submit" className="predict-button" style={{ marginTop: '1.5rem', width: '100%' }}>
+                            Save Thresholds
+                        </button>
+                    </form>
+                </div>
             );
         }
+
+        function Navbar() { return (<nav className="navbar"><div className="navbar-title">RPS</div><button className="navbar-button">About</button></nav>); }
 
         function HeroSection() {
             return (
@@ -404,94 +386,61 @@
 
         function PredictionForm({ onPrediction }) {
             const [features, setFeatures] = useState({
-                slope_angle: 40.0,
-                rainfall_last_24h: 100.0,
-                displacement_rate: 2.0,
-                pore_pressure: 150.0,
-                image_crack_score: 0.5,
+                slope_angle: 40.0, rainfall_last_24h: 100.0, displacement_rate: 2.0,
+                pore_pressure: 150.0, image_crack_score: 0.5,
             });
             const [isLoading, setIsLoading] = useState(false);
 
             const handleInputChange = (e) => {
                 const { name, value } = e.target;
                 const numericValue = value === '' ? 0 : parseFloat(value);
-                setFeatures(prevFeatures => ({
-                    ...prevFeatures,
-                    [name]: numericValue,
-                }));
+                setFeatures(prev => ({ ...prev, [name]: numericValue }));
             };
 
             const handleSubmit = (e) => {
                 e.preventDefault();
                 setIsLoading(true);
-                onPrediction(null); // Clear previous results
+                onPrediction(null);
 
-                // --- REAL API CALL to your FastAPI backend ---
                 fetch("http://127.0.0.1:8000/predict", {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(features),
                 })
                 .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
+                    if (!response.ok) throw new Error('Network response was not ok');
                     return response.json();
                 })
-                .then(data => {
-                    console.log("Received real response:", data);
-                    onPrediction(data);
-                })
+                .then(data => onPrediction(data))
                 .catch(error => {
                     console.error("Error making prediction:", error);
                     onPrediction({ error: "Failed to connect to the API. Is the server running?" });
                 })
-                .finally(() => {
-                    setIsLoading(false); // Stop loading indicator
-                });
+                .finally(() => setIsLoading(false));
             };
+
             const inputParams = {
-                slope_angle: { min: 0, max: 90, step: 0.5 },
-                rainfall_last_24h: { min: 0, max: 300, step: 1 },
-                displacement_rate: { min: 0, max: 10, step: 0.1 },
-                pore_pressure: { min: 0, max: 500, step: 5 },
+                slope_angle: { min: 0, max: 90, step: 0.5 }, rainfall_last_24h: { min: 0, max: 300, step: 1 },
+                displacement_rate: { min: 0, max: 10, step: 0.1 }, pore_pressure: { min: 0, max: 500, step: 5 },
                 image_crack_score: { min: 0, max: 1, step: 0.01 },
-            }
+            };
 
             return (
                 <div className="prediction-form">
                     <h3>Input Parameters</h3>
-                    {/* The form tag was missing from around the submit button */}
                     <form onSubmit={handleSubmit}>
                         <div className="form-grid">
                             {Object.keys(features).map(key => (
                                 <div key={key} className="form-group">
                                     <label>
                                         {key.replace(/_/g, ' ')}
-                                        <input
-                                            type="number"
-                                            className="inline-input"
-                                            name={key}
-                                            value={features[key]}
-                                            onChange={handleInputChange}
-                                            min={inputParams[key].min}
-                                            max={inputParams[key].max}
-                                            step={inputParams[key].step}
-                                            disabled={isLoading}
-                                        />
+                                        <input type="number" className="inline-input" name={key} value={features[key]}
+                                            onChange={handleInputChange} min={inputParams[key].min} max={inputParams[key].max}
+                                            step={inputParams[key].step} disabled={isLoading} />
                                     </label>
-                                    <input
-                                        type="range"
-                                        name={key}
-                                        value={features[key]}
-                                        onChange={handleInputChange}
-                                        min={inputParams[key].min}
-                                        max={inputParams[key].max}
-                                        step={inputParams[key].step}
-                                        disabled={isLoading}
-                                    />
+                                    <input type="range" name={key} value={features[key]}
+                                        onChange={handleInputChange} min={inputParams[key].min} max={inputParams[key].max}
+                                        step={inputParams[key].step} disabled={isLoading} />
                                 </div>
                             ))}
                         </div>
@@ -503,37 +452,24 @@
             );
         }
 
-        function Footer() {
-            return (
-                <footer className="site-footer">
-                    <p>&copy; 2025 Rockfall Prediction Systems</p>
-                </footer>
-            );
-        }
+        function Footer() { return (<footer className="site-footer"><p>&copy; 2025 Rockfall Prediction Systems</p></footer>); }
 
         function ThemeToggleButton({ theme, toggleTheme }) {
-            const sunIcon = (
-                <svg className="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                </svg>
-            );
-            const moonIcon = (
-                <svg className="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                </svg>
-            );
-
-            return (
-                <button className="theme-toggle-button" onClick={toggleTheme} aria-label="Toggle theme">
-                    {sunIcon}
-                    {moonIcon}
-                </button>
-            );
+            const sunIcon = (<svg className="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>);
+            const moonIcon = (<svg className="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>);
+            return (<button className="theme-toggle-button" onClick={toggleTheme} aria-label="Toggle theme">{sunIcon}{moonIcon}</button>);
         }
+
 
         function App() {
             const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
             const [predictionResult, setPredictionResult] = useState(null);
+            // --- Thresholds State ---
+            const [thresholds, setThresholds] = useState({
+                guarded: 0.45,
+                elevated: 0.70,
+                critical: 0.95
+            });
 
             useEffect(() => {
                 const handleMouseMove = (e) => {
@@ -546,10 +482,7 @@
                     }
                 };
                 window.addEventListener('mousemove', handleMouseMove);
-
-                return () => {
-                    window.removeEventListener('mousemove', handleMouseMove);
-                };
+                return () => window.removeEventListener('mousemove', handleMouseMove);
             }, []);
 
             useEffect(() => {
@@ -557,12 +490,12 @@
                 localStorage.setItem('theme', theme);
             }, [theme]);
 
-            const toggleTheme = () => {
-                setTheme(prevTheme => (prevTheme === 'dark' ? 'light' : 'dark'));
-            };
+            const toggleTheme = () => setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+            const handlePrediction = (result) => setPredictionResult(result);
 
-            const handlePrediction = (result) => {
-                setPredictionResult(result);
+            // --- Handler for Threshold Change ---
+            const handleThresholdChange = (name, value) => {
+                setThresholds(prev => ({ ...prev, [name]: value }));
             };
 
             return (
@@ -571,16 +504,29 @@
                     <HeroSection />
                     <main className="main-content" id="main-tool">
                         <div className="container">
-                            <PredictionForm onPrediction={handlePrediction} />
+                            <div style={{ display: 'flex', gap: '2.5rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                                <div style={{ flex: '1 1 340px', minWidth: 0 }}>
+                                    <PredictionForm onPrediction={handlePrediction} />
+                                </div>
+                                <div style={{ flex: '0 1 320px', minWidth: '260px', maxWidth: '340px' }}>
+                                    <ThresholdSettings thresholds={thresholds} onThresholdChange={handleThresholdChange} />
+                                </div>
+                            </div>
                             {predictionResult && (
                                 <div className="result-container">
                                     <h3>Prediction Result</h3>
                                     {predictionResult.error ? (
-                                        <p className="high-risk">Error: {predictionResult.error}</p>
+                                        <p className="risk-level" style={{color: 'var(--risk-critical)'}}>Error: {predictionResult.error}</p>
                                     ) : (
                                         <div>
-                                            <p className={predictionResult.prediction === 1 ? 'high-risk' : 'low-risk'}>
-                                                Risk Level: {predictionResult.prediction === 1 ? 'High' : 'Low'}
+                                            <p>
+                                                Risk Level:
+                                                <span
+                                                    className="risk-level"
+                                                    style={{ color: `var(--risk-${(predictionResult.risk_level || 'low').toLowerCase()})` }}
+                                                >
+                                                    {` ${predictionResult.risk_level || 'N/A'}`}
+                                                </span>
                                             </p>
                                             <p>
                                                 Probability of Failure: {(predictionResult.probability_of_rockfall * 100).toFixed(2)}%
@@ -597,11 +543,9 @@
             );
         }
 
-        // --- CORRECTED: Use the modern createRoot API for React 18 ---
         const container = document.getElementById('root');
         const root = ReactDOM.createRoot(container);
         root.render(<App />);
-
     </script>
 </body>
 </html>
