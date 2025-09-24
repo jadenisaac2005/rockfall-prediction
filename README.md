@@ -12,7 +12,7 @@ Here is a preview of the interactive dashboard that provides mine planners with 
 
 ## 🎯 Problem Statement
 
-Rockfalls in open-pit mines pose a significant threat to personnel safety and can cause costly operational disruptions. This project addresses the need for a proactive monitoring system that can identify patterns preceding rockfall events and provide timely warnings for preventive action.
+Al-Based Rockfall Prediction and Alert System for Open-Pit Mines
 
 ## 🚀 Key Features
 
