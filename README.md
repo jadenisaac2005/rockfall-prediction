@@ -8,7 +8,7 @@ An intelligent, end-to-end system designed to predict and prevent rockfall incid
 
 Here is a preview of the interactive dashboard that provides mine planners with at-a-glance risk assessments.
 
-![Dashboard Screenshot](https://github.com/jadenisaac2005/rockfall-prediction-sih25/blob/fc7b38049efff57c5008c23ff8405bac36c3ea3a/media/Dashboard%20Screenshot.jpg)
+![Dashboard Screenshot](https://github.com/jadenisaac2005/rockfall-prediction-sih25/blob/5a2733339007cc4714cfc6c17c8b00c2867f647e/media/Dashboard%20Screenshot.jpg)
 
 ## 🎯 Problem Statement
 
