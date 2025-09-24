@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,24 +13,40 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
 
-
     <style>
         :root {
             --dark-bg: #0a0a0a;
-            --main-bg: rgba(28, 28, 28, 0.6);
-            --card-bg: rgba(40, 40, 40, 0.7);
-            --primary-text: #e0e6e0; /* Light green-grey for main text */
-            --secondary-text: #9ab09a; /* Muted green-grey for secondary text */
-            --accent-color: #3b7b3b; /* Darker forest green */
-            --border-color: rgba(68, 80, 68, 0.5); /* Greenish border */
-
-            /* Gradient Colors (for the moving background) */
-            --gradient-color-1: #2a3a2a; /* Deep forest green */
-            --gradient-color-2: #1a2a1a; /* Even deeper forest green */
-            --gradient-color-3: #4a6a4a; /* Slightly lighter green */
-
+            --gradient-color-1: #2a3a2a;
+            --gradient-color-2: #1a2a1a;
+            --gradient-color-3: #3c5c3c;
+            --gradient-color-1-light: #a3b1a3;
+            --gradient-color-2-light: #c3d1c3;
+            --gradient-color-3-light: #b3c1b3;
+            --main-glass-bg: rgba(28, 28, 28, 0.4);
+            --card-glass-bg: rgba(40, 40, 40, 0.3);
+            --navbar-glass-bg: rgba(17, 17, 17, 0.5);
+            --footer-glass-bg: rgba(17, 17, 17, 0.5);
+            --primary-text: #f0f0f0;
+            --secondary-text: #a0a0a0;
+            --accent-color: #ffffff;
+            --border-color: rgba(68, 68, 68, 0.4);
             --mouse-x: 50%;
             --mouse-y: 50%;
+        }
+
+        body.light-mode {
+            --dark-bg: #e8eae8;
+            --gradient-color-1: var(--gradient-color-1-light);
+            --gradient-color-2: var(--gradient-color-2-light);
+            --gradient-color-3: var(--gradient-color-3-light);
+            --main-glass-bg: rgba(245, 245, 245, 0.4);
+            --card-glass-bg: rgba(255, 255, 255, 0.3);
+            --navbar-glass-bg: rgba(250, 250, 250, 0.5);
+            --footer-glass-bg: rgba(250, 250, 250, 0.5);
+            --primary-text: #1a1a1a;
+            --secondary-text: #5a5a5a;
+            --accent-color: #000000;
+            --border-color: rgba(200, 200, 200, 0.4);
         }
 
         html {
@@ -48,6 +63,7 @@
             color: var(--primary-text);
             line-height: 1.6;
             overflow-x: hidden;
+            transition: background-color 0.3s ease;
         }
 
         #root {
@@ -58,7 +74,6 @@
             z-index: 1;
         }
 
-        /* --- Dynamic Background Container --- */
         .dynamic-background {
             position: fixed;
             top: 0;
@@ -73,7 +88,7 @@
                 radial-gradient(at calc(100% - var(--mouse-x)) calc(100% - var(--mouse-y)), var(--gradient-color-1) 0%, transparent 70%),
                 url('data:image/svg+xml;utf8,<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><filter id="f"><feTurbulence type="fractalNoise" baseFrequency="0.6" numOctaves="3" result="noise" /><feColorMatrix in="noise" type="matrix" values="0 0 0 0 0, 0 0 0 0 0, 0 0 0 0 0, 0 0 0 0.2 0" /></filter><rect width="100%" height="100%" filter="url(%23f)" opacity="0.1" /></svg>');
             animation: backgroundPan 30s linear infinite;
-            transition: background-position 0.1s ease-out;
+            transition: background-position 0.1s ease-out, background-image 0.3s ease;
         }
 
         @keyframes backgroundPan {
@@ -82,7 +97,6 @@
             100% { background-position: 0% 0%, 100% 100%, 0 0; }
         }
 
-        /* --- Navbar Styles --- */
         .navbar {
             position: fixed;
             top: 0;
@@ -92,11 +106,12 @@
             justify-content: space-between;
             align-items: center;
             padding: 1rem 2rem;
-            background-color: rgba(10, 20, 10, 0.5); /* Greenish semi-transparent */
+            background-color: var(--navbar-glass-bg);
             backdrop-filter: blur(15px);
             border-bottom: 1px solid var(--border-color);
             z-index: 1000;
             box-sizing: border-box;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
         .navbar-title {
             font-size: 1.2rem;
@@ -119,7 +134,6 @@
             color: var(--dark-bg);
         }
 
-        /* --- Hero Section --- */
         .hero {
             display: flex;
             align-items: center;
@@ -128,7 +142,7 @@
             height: 100vh;
             padding: 0 2rem;
             box-sizing: border-box;
-            scroll-snap-align: start;
+            scroll-snap-align: center;
         }
         .hero-title {
             font-size: 5rem;
@@ -146,19 +160,18 @@
             line-height: 1.7;
         }
 
-        /* --- Main Content Layout --- */
         .main-content {
-            flex: 1;
             display: flex;
             justify-content: center;
+            align-items: center;
             padding: 6rem 0;
-            background-color: var(--main-bg);
+            background-color: var(--main-glass-bg);
             backdrop-filter: blur(15px);
             border-top: 1px solid var(--border-color);
-            scroll-snap-align: start;
-            min-height: 100vh;
+            scroll-snap-align: center;
+            height: 115vh;
             box-sizing: border-box;
-            align-items: center;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
 
         .container {
@@ -167,9 +180,11 @@
             margin: 0 2rem;
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             padding: 2.5rem;
-            background-color: var(--main-bg);
+            background-color: transparent;
+            backdrop-filter: blur(10px);
+            transition: border-color 0.3s ease;
         }
 
         h3 {
@@ -181,14 +196,16 @@
             margin-bottom: 1.5rem;
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 1rem;
+            transition: color 0.3s ease, border-color 0.3s ease;
         }
 
         .prediction-form {
             padding: 2rem;
-            background-color: var(--card-bg);
+            background-color: var(--card-glass-bg);
             border: 1px solid var(--border-color);
             border-radius: 10px;
             backdrop-filter: blur(8px);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
 
         .form-grid {
@@ -200,16 +217,17 @@
         .form-group {
             display: flex;
             flex-direction: column;
-            gap: 0.8rem;
+            gap: 1.2rem;
         }
 
         .form-group label {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
             font-weight: 400;
             color: var(--secondary-text);
             letter-spacing: 0.8px;
             font-size: 1rem;
-            display: flex;
-            align-items: baseline;
             text-transform: capitalize;
         }
 
@@ -219,7 +237,7 @@
             width: 100%;
             font-size: 1.1rem;
             background-color: transparent;
-            color: var(--accent-color); /* Button text uses accent color */
+            color: var(--accent-color);
             border: 1px solid var(--accent-color);
             cursor: pointer;
             transition: background-color 0.2s, color 0.2s;
@@ -231,7 +249,7 @@
 
         .predict-button:hover {
             background-color: var(--accent-color);
-            color: var(--dark-bg); /* Text becomes dark on hover */
+            color: var(--dark-bg);
         }
 
         .predict-button:disabled {
@@ -244,126 +262,61 @@
             background-color: transparent;
         }
 
-
         .result-container {
             margin-top: 2.5rem;
             padding: 2rem;
-            background-color: var(--card-bg);
+            background-color: var(--card-glass-bg);
             border: 1px solid var(--border-color);
             border-radius: 10px;
             text-align: center;
             backdrop-filter: blur(8px);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
 
-        .result-container .high-risk {
-            color: var(--accent-color); /* High risk also uses accent green */
-            font-weight: 500;
-        }
-
-        .result-container .low-risk {
-            color: var(--secondary-text);
-        }
-
-        .result-container p {
-            font-size: 1.1rem;
-            margin: 0.8rem 0;
-            letter-spacing: 0.5px;
-        }
-
-        /* --- Inline Editable Input Styles --- */
         .inline-input {
             background: transparent;
             border: none;
-            color: var(--accent-color); /* Input value color */
+            color: var(--accent-color);
             font-family: 'Jost', sans-serif;
             font-weight: 400;
             font-size: 1rem;
             width: 80px;
             padding: 2px 5px;
-            margin-left: 0.5rem;
             border-bottom: 1px solid transparent;
             transition: background-color 0.2s, border-color 0.2s;
             text-align: right;
         }
         .inline-input:focus,
         .inline-input:hover {
-            background-color: rgba(60, 100, 60, 0.1); /* Subtle green hover */
+            background-color: rgba(255, 255, 255, 0.05);
             border-bottom-color: var(--border-color);
             outline: none;
             border-radius: 4px;
         }
+
+        body.light-mode .inline-input:focus,
+        body.light-mode .inline-input:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+        }
+
         .inline-input::-webkit-outer-spin-button,
-        .inline-input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        .inline-input[type=number] {
-            -moz-appearance: textfield;
-        }
+        .inline-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .inline-input[type=number] { -moz-appearance: textfield; }
 
-        /* --- Custom Slider Styles --- */
-        input[type=range] {
-            -webkit-appearance: none;
-            width: 100%;
-            background: transparent;
-            margin: 0;
-            padding: 0;
-        }
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; margin: 0; padding: 0; }
+        input[type=range]:focus { outline: none; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 2px; cursor: pointer; background: var(--border-color); border-radius: 2px; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; background: var(--accent-color); border-radius: 50%; cursor: pointer; margin-top: -7px; transition: background-color 0.2s; }
+        input[type=range]::-webkit-slider-thumb:hover { background-color: #cccccc; }
+        body.light-mode input[type=range]::-webkit-slider-thumb:hover { background-color: #333333; }
 
-        input[type=range]:focus {
-            outline: none;
-        }
-
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 2px;
-            cursor: pointer;
-            background: var(--border-color);
-            border-radius: 2px;
-        }
-
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 16px;
-            width: 16px;
-            background: var(--accent-color);
-            border-radius: 50%;
-            cursor: pointer;
-            margin-top: -7px;
-            transition: background-color 0.2s;
-        }
-        input[type=range]::-webkit-slider-thumb:hover {
-            background-color: #6a9a6a; /* Lighter green on hover */
-        }
-
-        input[type=range]::-moz-range-track {
-            width: 100%;
-            height: 2px;
-            cursor: pointer;
-            background: var(--border-color);
-            border-radius: 2px;
-        }
-
-        input[type=range]::-moz-range-thumb {
-            height: 16px;
-            width: 16px;
-            background: var(--accent-color);
-            border-radius: 50%;
-            cursor: pointer;
-            border: none;
-        }
-        input[type=range]::-moz-range-thumb:hover {
-            background-color: #6a9a6a;
-        }
-
-        /* --- Footer Styles --- */
         .site-footer {
             padding: 1.5rem;
             text-align: center;
             color: var(--secondary-text);
             font-size: 0.85rem;
             border-top: 1px solid var(--border-color);
-            background-color: rgba(10, 20, 10, 0.5); /* Greenish semi-transparent */
+            background-color: var(--footer-glass-bg);
             backdrop-filter: blur(15px);
             box-sizing: border-box;
             letter-spacing: 0.5px;
@@ -371,18 +324,61 @@
             position: relative;
         }
 
+        .theme-toggle-button {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 1px solid var(--border-color);
+            background-color: var(--navbar-glass-bg);
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        .theme-toggle-button:hover {
+            border-color: var(--accent-color);
+        }
+        .theme-toggle-button svg {
+            width: 24px;
+            height: 24px;
+            transition: fill 0.3s ease, stroke 0.3s ease, transform 0.4s cubic-bezier(0.445, 0.05, 0.55, 0.95);
+            position: absolute;
+        }
+        .theme-toggle-button svg.moon {
+            fill: var(--secondary-text);
+            stroke: none;
+        }
+        .theme-toggle-button:hover svg.moon {
+            fill: var(--accent-color);
+        }
+        .theme-toggle-button svg.sun {
+            stroke: var(--secondary-text);
+            fill: none;
+        }
+        .theme-toggle-button:hover svg.sun {
+            stroke: var(--accent-color);
+        }
+
+        .theme-toggle-button .moon { transform: scale(0) rotate(90deg); }
+        .theme-toggle-button .sun { transform: scale(1) rotate(0deg); }
+        body.light-mode .theme-toggle-button .moon { transform: scale(1) rotate(0deg); }
+        body.light-mode .theme-toggle-button .sun { transform: scale(0) rotate(-90deg); }
+
     </style>
 </head>
 <body>
-
     <div class="dynamic-background" id="dynamic-bg"></div>
     <div id="root"></div>
 
     <script type="text/babel">
-
         const { useState, useEffect } = React;
 
-        // --- Component: Navbar ---
         function Navbar() {
             return (
                 <nav className="navbar">
@@ -392,7 +388,6 @@
             );
         }
 
-        // --- Component: Hero Section ---
         function HeroSection() {
             return (
                 <section className="hero">
@@ -457,7 +452,6 @@
                     setIsLoading(false); // Stop loading indicator
                 });
             };
-
             const inputParams = {
                 slope_angle: { min: 0, max: 90, step: 0.5 },
                 rainfall_last_24h: { min: 0, max: 300, step: 1 },
@@ -469,6 +463,7 @@
             return (
                 <div className="prediction-form">
                     <h3>Input Parameters</h3>
+                    {/* The form tag was missing from around the submit button */}
                     <form onSubmit={handleSubmit}>
                         <div className="form-grid">
                             {Object.keys(features).map(key => (
@@ -508,8 +503,6 @@
             );
         }
 
-
-        // --- Component: Footer ---
         function Footer() {
             return (
                 <footer className="site-footer">
@@ -518,8 +511,30 @@
             );
         }
 
-        // --- Main App Component ---
+        function ThemeToggleButton({ theme, toggleTheme }) {
+            const sunIcon = (
+                <svg className="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+            );
+            const moonIcon = (
+                <svg className="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            );
+
+            return (
+                <button className="theme-toggle-button" onClick={toggleTheme} aria-label="Toggle theme">
+                    {sunIcon}
+                    {moonIcon}
+                </button>
+            );
+        }
+
         function App() {
+            const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
+            const [predictionResult, setPredictionResult] = useState(null);
+
             useEffect(() => {
                 const handleMouseMove = (e) => {
                     const bg = document.getElementById('dynamic-bg');
@@ -531,12 +546,20 @@
                     }
                 };
                 window.addEventListener('mousemove', handleMouseMove);
+
                 return () => {
                     window.removeEventListener('mousemove', handleMouseMove);
                 };
             }, []);
 
-            const [predictionResult, setPredictionResult] = useState(null);
+            useEffect(() => {
+                document.body.className = theme === 'light' ? 'light-mode' : '';
+                localStorage.setItem('theme', theme);
+            }, [theme]);
+
+            const toggleTheme = () => {
+                setTheme(prevTheme => (prevTheme === 'dark' ? 'light' : 'dark'));
+            };
 
             const handlePrediction = (result) => {
                 setPredictionResult(result);
@@ -569,14 +592,16 @@
                         </div>
                     </main>
                     <Footer />
+                    <ThemeToggleButton theme={theme} toggleTheme={toggleTheme} />
                 </React.Fragment>
             );
         }
 
-        // Render the App to the DOM
-        ReactDOM.render(<App />, document.getElementById('root'));
+        // --- CORRECTED: Use the modern createRoot API for React 18 ---
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
+        root.render(<App />);
 
     </script>
-
 </body>
 </html>
