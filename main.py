@@ -1,20 +1,24 @@
-#main.py
+
+# main.py -- Rockfall Prediction API
+# ----------------------------------
+# FastAPI backend for rockfall risk prediction, dynamic thresholds, and alerting.
+
 import random
 import pandas as pd
 import joblib
 import logging
-from fastapi import Body
-from typing import Optional
 from fastapi import FastAPI, BackgroundTasks
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic_settings import BaseSettings
 from pydantic import BaseModel
-from fastapi.middleware.cors import CORSMiddleware
 from twilio.rest import Client
 
 # =========================================================
 # 1. SECURE CONFIGURATION MANAGEMENT
 # =========================================================
+
 class Settings(BaseSettings):
+    """App configuration loaded from .env file."""
     OPTIMAL_THRESHOLD: float = 0.25
     THRESHOLD_GUARDED: float = 0.45
     THRESHOLD_ELEVATED: float = 0.70
@@ -25,26 +29,34 @@ class Settings(BaseSettings):
     YOUR_PHONE_NUMBER: str
     class Config:
         env_file = ".env"
+
 settings = Settings()
 
 # =========================================================
 # 2. STRUCTURED LOGGING & APP INITIALIZATION
 # =========================================================
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 app = FastAPI(
     title="Rockfall Prediction API",
     description="An API to predict rockfall incidents with a multi-level risk system.",
     version="1.0.0",
 )
+
 app.add_middleware(
-    CORSMiddleware, allow_origins=["*"], allow_credentials=True,
-    allow_methods=["*"], allow_headers=["*"],
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # =========================================================
 # 3. LOAD THE AI PIPELINE
 # =========================================================
+
 try:
     pipeline = joblib.load('rockfall_prediction_pipeline.joblib')
     logger.info("✅ Full prediction pipeline (scaler + model) loaded successfully!")
@@ -53,9 +65,11 @@ except Exception as e:
     pipeline = None
 
 # =========================================================
-# 4. DATA INPUT MODEL
+# 4. DATA MODELS
 # =========================================================
+
 class RockfallFeatures(BaseModel):
+    """Input features for rockfall prediction."""
     slope_angle: float
     rainfall_last_24h: float
     displacement_rate: float
@@ -63,21 +77,27 @@ class RockfallFeatures(BaseModel):
     image_crack_score: float
 
 class ThresholdUpdate(BaseModel):
+    """Model for updating risk thresholds via API."""
     guarded: float
     elevated: float
     critical: float
 
-
 # =========================================================
 # 5. CORE BUSINESS LOGIC
 # =========================================================
+
 def get_risk_level(probability: float):
-    if probability >= settings.THRESHOLD_CRITICAL: return "CRITICAL", "red"
-    if probability >= settings.THRESHOLD_ELEVATED: return "ELEVATED", "orange"
-    if probability >= settings.THRESHOLD_GUARDED: return "GUARDED", "yellow"
+    """Classify risk level and color based on probability and thresholds."""
+    if probability >= settings.THRESHOLD_CRITICAL:
+        return "CRITICAL", "red"
+    if probability >= settings.THRESHOLD_ELEVATED:
+        return "ELEVATED", "orange"
+    if probability >= settings.THRESHOLD_GUARDED:
+        return "GUARDED", "yellow"
     return "LOW", "green"
 
 def send_sms_alert(features: dict, probability: float):
+    """Send SMS alert via Twilio if risk is critical."""
     try:
         client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
         details = "\n".join([f"- {k.replace('_', ' ').title()}: {v}" for k, v in features.items()])
@@ -88,12 +108,13 @@ def send_sms_alert(features: dict, probability: float):
             f"Input Parameters:\n{details}"
         )
         message = client.messages.create(
-            body=message_body, from_=settings.TWILIO_PHONE_NUMBER, to=settings.YOUR_PHONE_NUMBER
+            body=message_body,
+            from_=settings.TWILIO_PHONE_NUMBER,
+            to=settings.YOUR_PHONE_NUMBER
         )
         logger.info(f"✅ CRITICAL alert sent successfully! SID: {message.sid}")
     except Exception as e:
         logger.error(f"❌ Failed to send CRITICAL alert. Error: {e}")
-
 
 # =========================================================
 # 6. API ENDPOINTS
@@ -101,10 +122,12 @@ def send_sms_alert(features: dict, probability: float):
 
 @app.get("/")
 def read_root():
+    """Health check endpoint."""
     return {"message": "Welcome to the Rockfall Prediction API!"}
 
 @app.post("/predict")
 def predict_rockfall(features: RockfallFeatures, background_tasks: BackgroundTasks):
+    """Predict rockfall risk and trigger alert if critical."""
     if pipeline is None:
         return {"error": "Prediction pipeline is not loaded."}
 
@@ -121,7 +144,7 @@ def predict_rockfall(features: RockfallFeatures, background_tasks: BackgroundTas
     is_zero_input = all(value == 0 for value in features.dict().values())
 
     if risk_level == "CRITICAL" and not is_zero_input:
-        logger.info(f"🚨 CRITICAL risk detected! Adding SMS alert to background tasks.")
+        logger.info("🚨 CRITICAL risk detected! Adding SMS alert to background tasks.")
         background_tasks.add_task(send_sms_alert, features.dict(), probability)
 
     return {
@@ -142,6 +165,7 @@ def set_thresholds(new_thresholds: ThresholdUpdate):
 # =========================================================
 # 7. RISK MAP ENDPOINT
 # =========================================================
+
 mine_zones = {
     "zone_A": {"name": "North Quarry Face", "lat": 12.9716, "lon": 77.5946, "base_features": [45.0, 15.0, 0.5, 28.0, 0.1]},
     "zone_B": {"name": "East Haul Road", "lat": 12.9726, "lon": 77.6046, "base_features": [35.0, 80.0, 1.8, 90.0, 0.3]},
@@ -151,7 +175,10 @@ mine_zones = {
 
 @app.get("/risk-map")
 def get_risk_map_data():
-    if pipeline is None: return {"error": "Prediction pipeline is not loaded."}
+    """Returns simulated risk data for each mine zone."""
+    if pipeline is None:
+        return {"error": "Prediction pipeline is not loaded."}
+
     risk_data = []
     feature_names = ['slope_angle', 'rainfall_last_24h', 'displacement_rate', 'pore_pressure', 'image_crack_score']
 
@@ -166,7 +193,11 @@ def get_risk_map_data():
         risk_level, color = get_risk_level(probability)
 
         risk_data.append({
-            "zone_id": zone_id, "name": zone_info["name"], "coords": [zone_info["lat"], zone_info["lon"]],
-            "risk_level": risk_level, "color": color, "probability": float(probability)
+            "zone_id": zone_id,
+            "name": zone_info["name"],
+            "coords": [zone_info["lat"], zone_info["lon"]],
+            "risk_level": risk_level,
+            "color": color,
+            "probability": float(probability)
         })
     return risk_data

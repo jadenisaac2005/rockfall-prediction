@@ -229,323 +229,404 @@
     <div class="dynamic-background" id="dynamic-bg"></div>
     <div id="root"></div>
 
+
     <script type="text/babel">
+    // Rockfall Prediction Dashboard (React via CDN)
+    // ---------------------------------------------
+    // Main UI for risk prediction, threshold management, and visualization.
 
-        const { useState, useEffect } = React;
+    const { useState, useEffect } = React;
 
-        // --- ThresholdSettings Component ---
-        function ThresholdSettings({ thresholds, onThresholdChange }) {
-            const defaultThresholds = { guarded: 0.45, elevated: 0.70, critical: 0.95 };
-            const [localThresholds, setLocalThresholds] = useState({ ...thresholds });
+    // ThresholdSettings: Allows user to view, update, and reset risk thresholds
+    function ThresholdSettings({ thresholds, onThresholdChange }) {
+        const defaultThresholds = { guarded: 0.45, elevated: 0.70, critical: 0.95 };
+        const [localThresholds, setLocalThresholds] = useState({ ...thresholds });
 
-            useEffect(() => { setLocalThresholds({ ...thresholds }); }, [thresholds]);
+        // Sync local state with parent thresholds
+        useEffect(() => { setLocalThresholds({ ...thresholds }); }, [thresholds]);
 
-            const handleInput = (e) => {
-                const { name, value } = e.target;
-                const numValue = value === '' ? 0 : parseFloat(value);
-                setLocalThresholds(prev => ({ ...prev, [name]: numValue }));
-                onThresholdChange(name, numValue);
-            };
+        // Handle input change for any threshold
+        const handleInput = (e) => {
+            const { name, value } = e.target;
+            const numValue = value === '' ? 0 : parseFloat(value);
+            setLocalThresholds(prev => ({ ...prev, [name]: numValue }));
+            onThresholdChange(name, numValue);
+        };
 
-            const handleSave = async (e) => {
-                e.preventDefault();
-                // Send POST to backend to update thresholds
-                try {
-                    const res = await fetch("http://127.0.0.1:8000/set-thresholds", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            guarded: localThresholds.guarded,
-                            elevated: localThresholds.elevated,
-                            critical: localThresholds.critical
-                        })
-                    });
-                    const data = await res.json();
-                    console.log("Saved thresholds:", data);
-                } catch (err) {
-                    console.error("Failed to update thresholds:", err);
-                }
-            };
+        // Save thresholds to backend
+        const handleSave = async (e) => {
+            e.preventDefault();
+            try {
+                const res = await fetch("http://127.0.0.1:8000/set-thresholds", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        guarded: localThresholds.guarded,
+                        elevated: localThresholds.elevated,
+                        critical: localThresholds.critical
+                    })
+                });
+                const data = await res.json();
+                console.log("Saved thresholds:", data);
+            } catch (err) {
+                console.error("Failed to update thresholds:", err);
+            }
+        };
 
-            const handleReset = async (e) => {
-                e.preventDefault();
-                setLocalThresholds(defaultThresholds);
-                // Update parent state
-                Object.entries(defaultThresholds).forEach(([k, v]) => onThresholdChange(k, v));
-                // Send POST to backend to reset thresholds
-                try {
-                    const res = await fetch("http://127.0.0.1:8000/set-thresholds", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(defaultThresholds)
-                    });
-                    const data = await res.json();
-                    console.log("Thresholds reset:", data);
-                } catch (err) {
-                    console.error("Failed to reset thresholds:", err);
-                }
-            };
+        // Reset thresholds to defaults (UI + backend)
+        const handleReset = async (e) => {
+            e.preventDefault();
+            setLocalThresholds(defaultThresholds);
+            Object.entries(defaultThresholds).forEach(([k, v]) => onThresholdChange(k, v));
+            try {
+                const res = await fetch("http://127.0.0.1:8000/set-thresholds", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(defaultThresholds)
+                });
+                const data = await res.json();
+                console.log("Thresholds reset:", data);
+            } catch (err) {
+                console.error("Failed to reset thresholds:", err);
+            }
+        };
 
-            return (
-                <div className="threshold-settings" style={{
-                    margin: '2.5rem 0 2rem 0',
-                    padding: '2rem',
-                    background: 'var(--card-glass-bg)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '10px',
-                    backdropFilter: 'blur(8px)',
-                    color: 'var(--primary-text)'
-                }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-                        <h3 style={{ margin: 0 }}>Risk Threshold Settings</h3>
-                        <button
-                            type="button"
-                            title="Reset to default thresholds"
-                            onClick={handleReset}
-                            style={{
-                                background: 'none',
-                                border: 'none',
-                                padding: 0,
-                                marginLeft: '0.5rem',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                height: '28px',
-                                width: '28px',
-                                borderRadius: '50%',
-                                transition: 'background 0.2s',
-                            }}
-                            className="reset-thresholds-btn"
-                        >
-                            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M17.657 6.343A8 8 0 1 0 19 11" stroke="var(--risk-low)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                <polyline points="17 2 17 7 12 7" stroke="var(--risk-low)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-                            </svg>
-                        </button>
-                    </div>
-                    <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                        <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            Guarded Threshold
-                            <input
-                                type="number"
-                                name="guarded"
-                                min="0" max="1" step="0.01"
-                                value={localThresholds.guarded}
-                                onChange={handleInput}
-                                className="inline-input"
-                                style={{ marginLeft: '1rem', width: '80px' }}
-                            />
-                        </label>
-                        <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            Elevated Threshold
-                            <input
-                                type="number"
-                                name="elevated"
-                                min="0" max="1" step="0.01"
-                                value={localThresholds.elevated}
-                                onChange={handleInput}
-                                className="inline-input"
-                                style={{ marginLeft: '1rem', width: '80px' }}
-                            />
-                        </label>
-                        <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            Critical Threshold
-                            <input
-                                type="number"
-                                name="critical"
-                                min="0" max="1" step="0.01"
-                                value={localThresholds.critical}
-                                onChange={handleInput}
-                                className="inline-input"
-                                style={{ marginLeft: '1rem', width: '80px' }}
-                            />
-                        </label>
-                        <button type="submit" className="predict-button" style={{ marginTop: '1.5rem', width: '100%' }}>
-                            Save Thresholds
-                        </button>
-                    </form>
+        return (
+            <div className="threshold-settings" style={{
+                margin: '2.5rem 0 2rem 0',
+                padding: '2rem',
+                background: 'var(--card-glass-bg)',
+                border: '1px solid var(--border-color)',
+                borderRadius: '10px',
+                backdropFilter: 'blur(8px)',
+                color: 'var(--primary-text)'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+                    <h3 style={{ margin: 0 }}>Risk Threshold Settings</h3>
+                    <button
+                        type="button"
+                        title="Reset to default thresholds"
+                        onClick={handleReset}
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            padding: 0,
+                            marginLeft: '0.5rem',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            height: '28px',
+                            width: '28px',
+                            borderRadius: '50%',
+                            transition: 'background 0.2s',
+                        }}
+                        className="reset-thresholds-btn"
+                    >
+                        {/* Reload SVG icon */}
+                        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17.657 6.343A8 8 0 1 0 19 11" stroke="var(--risk-low)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            <polyline points="17 2 17 7 12 7" stroke="var(--risk-low)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                        </svg>
+                    </button>
                 </div>
-            );
-        }
+                <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    {/* Guarded Threshold Input */}
+                    <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        Guarded Threshold
+                        <input
+                            type="number"
+                            name="guarded"
+                            min="0" max="1" step="0.01"
+                            value={localThresholds.guarded}
+                            onChange={handleInput}
+                            className="inline-input"
+                            style={{ marginLeft: '1rem', width: '80px' }}
+                        />
+                    </label>
+                    {/* Elevated Threshold Input */}
+                    <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        Elevated Threshold
+                        <input
+                            type="number"
+                            name="elevated"
+                            min="0" max="1" step="0.01"
+                            value={localThresholds.elevated}
+                            onChange={handleInput}
+                            className="inline-input"
+                            style={{ marginLeft: '1rem', width: '80px' }}
+                        />
+                    </label>
+                    {/* Critical Threshold Input */}
+                    <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        Critical Threshold
+                        <input
+                            type="number"
+                            name="critical"
+                            min="0" max="1" step="0.01"
+                            value={localThresholds.critical}
+                            onChange={handleInput}
+                            className="inline-input"
+                            style={{ marginLeft: '1rem', width: '80px' }}
+                        />
+                    </label>
+                    {/* Save Button */}
+                    <button type="submit" className="predict-button" style={{ marginTop: '1.5rem', width: '100%' }}>
+                        Save Thresholds
+                    </button>
+                </form>
+            </div>
+        );
+    }
 
-        function Navbar() { return (<nav className="navbar"><div className="navbar-title">RPS</div><button className="navbar-button">About</button></nav>); }
 
-        function HeroSection() {
-            return (
-                <section className="hero">
-                    <div className="hero-content">
-                        <h1 className="hero-title">Rockfall Prediction</h1>
-                        <p className="hero-subtitle">
-                            An interactive tool for assessing geological stability.
-                            Adjust the parameters below to calculate the real-time probability of a rockfall event.
-                        </p>
-                    </div>
-                </section>
-            );
-        }
+    // Navbar: Top navigation bar
+    function Navbar() {
+        return (
+            <nav className="navbar">
+                <div className="navbar-title">RPS</div>
+                <button className="navbar-button">About</button>
+            </nav>
+        );
+    }
 
-        function PredictionForm({ onPrediction }) {
-            const [features, setFeatures] = useState({
-                slope_angle: 40.0, rainfall_last_24h: 100.0, displacement_rate: 2.0,
-                pore_pressure: 150.0, image_crack_score: 0.5,
-            });
-            const [isLoading, setIsLoading] = useState(false);
 
-            const handleInputChange = (e) => {
-                const { name, value } = e.target;
-                const numericValue = value === '' ? 0 : parseFloat(value);
-                setFeatures(prev => ({ ...prev, [name]: numericValue }));
-            };
-
-            const handleSubmit = (e) => {
-                e.preventDefault();
-                setIsLoading(true);
-                onPrediction(null);
-
-                fetch("http://127.0.0.1:8000/predict", {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(features),
-                })
-                .then(response => {
-                    if (!response.ok) throw new Error('Network response was not ok');
-                    return response.json();
-                })
-                .then(data => onPrediction(data))
-                .catch(error => {
-                    console.error("Error making prediction:", error);
-                    onPrediction({ error: "Failed to connect to the API. Is the server running?" });
-                })
-                .finally(() => setIsLoading(false));
-            };
-
-            const inputParams = {
-                slope_angle: { min: 0, max: 90, step: 0.5 }, rainfall_last_24h: { min: 0, max: 300, step: 1 },
-                displacement_rate: { min: 0, max: 10, step: 0.1 }, pore_pressure: { min: 0, max: 500, step: 5 },
-                image_crack_score: { min: 0, max: 1, step: 0.01 },
-            };
-
-            return (
-                <div className="prediction-form">
-                    <h3>Input Parameters</h3>
-                    <form onSubmit={handleSubmit}>
-                        <div className="form-grid">
-                            {Object.keys(features).map(key => (
-                                <div key={key} className="form-group">
-                                    <label>
-                                        {key.replace(/_/g, ' ')}
-                                        <input type="number" className="inline-input" name={key} value={features[key]}
-                                            onChange={handleInputChange} min={inputParams[key].min} max={inputParams[key].max}
-                                            step={inputParams[key].step} disabled={isLoading} />
-                                    </label>
-                                    <input type="range" name={key} value={features[key]}
-                                        onChange={handleInputChange} min={inputParams[key].min} max={inputParams[key].max}
-                                        step={inputParams[key].step} disabled={isLoading} />
-                                </div>
-                            ))}
-                        </div>
-                        <button type="submit" className="predict-button" disabled={isLoading}>
-                            {isLoading ? 'Calculating...' : 'Calculate Risk'}
-                        </button>
-                    </form>
+    // HeroSection: Landing section with title and subtitle
+    function HeroSection() {
+        return (
+            <section className="hero">
+                <div className="hero-content">
+                    <h1 className="hero-title">Rockfall Prediction</h1>
+                    <p className="hero-subtitle">
+                        An interactive tool for assessing geological stability.<br />
+                        Adjust the parameters below to calculate the real-time probability of a rockfall event.
+                    </p>
                 </div>
-            );
-        }
-
-        function Footer() { return (<footer className="site-footer"><p>&copy; 2025 Rockfall Prediction Systems</p></footer>); }
-
-        function ThemeToggleButton({ theme, toggleTheme }) {
-            const sunIcon = (<svg className="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>);
-            const moonIcon = (<svg className="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>);
-            return (<button className="theme-toggle-button" onClick={toggleTheme} aria-label="Toggle theme">{sunIcon}{moonIcon}</button>);
-        }
+            </section>
+        );
+    }
 
 
-        function App() {
-            const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
-            const [predictionResult, setPredictionResult] = useState(null);
-            // --- Thresholds State ---
-            const [thresholds, setThresholds] = useState({
-                guarded: 0.45,
-                elevated: 0.70,
-                critical: 0.95
-            });
+    // PredictionForm: User input for prediction features
+    function PredictionForm({ onPrediction }) {
+        const [features, setFeatures] = useState({
+            slope_angle: 40.0,
+            rainfall_last_24h: 100.0,
+            displacement_rate: 2.0,
+            pore_pressure: 150.0,
+            image_crack_score: 0.5,
+        });
+        const [isLoading, setIsLoading] = useState(false);
 
-            useEffect(() => {
-                const handleMouseMove = (e) => {
-                    const bg = document.getElementById('dynamic-bg');
-                    if (bg) {
-                        const x = e.clientX / window.innerWidth * 100;
-                        const y = e.clientY / window.innerHeight * 100;
-                        bg.style.setProperty('--mouse-x', `${x}%`);
-                        bg.style.setProperty('--mouse-y', `${y}%`);
-                    }
-                };
-                window.addEventListener('mousemove', handleMouseMove);
-                return () => window.removeEventListener('mousemove', handleMouseMove);
-            }, []);
+        // Handle input change for any feature
+        const handleInputChange = (e) => {
+            const { name, value } = e.target;
+            const numericValue = value === '' ? 0 : parseFloat(value);
+            setFeatures(prev => ({ ...prev, [name]: numericValue }));
+        };
 
-            useEffect(() => {
-                document.body.className = theme === 'light' ? 'light-mode' : '';
-                localStorage.setItem('theme', theme);
-            }, [theme]);
+        // Submit prediction request to backend
+        const handleSubmit = (e) => {
+            e.preventDefault();
+            setIsLoading(true);
+            onPrediction(null);
+            fetch("http://127.0.0.1:8000/predict", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(features),
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => onPrediction(data))
+            .catch(error => {
+                console.error("Error making prediction:", error);
+                onPrediction({ error: "Failed to connect to the API. Is the server running?" });
+            })
+            .finally(() => setIsLoading(false));
+        };
 
-            const toggleTheme = () => setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
-            const handlePrediction = (result) => setPredictionResult(result);
+        // Input parameter ranges for each feature
+        const inputParams = {
+            slope_angle: { min: 0, max: 90, step: 0.5 },
+            rainfall_last_24h: { min: 0, max: 300, step: 1 },
+            displacement_rate: { min: 0, max: 10, step: 0.1 },
+            pore_pressure: { min: 0, max: 500, step: 5 },
+            image_crack_score: { min: 0, max: 1, step: 0.01 },
+        };
 
-            // --- Handler for Threshold Change ---
-            const handleThresholdChange = (name, value) => {
-                setThresholds(prev => ({ ...prev, [name]: value }));
-            };
-
-            return (
-                <React.Fragment>
-                    <Navbar />
-                    <HeroSection />
-                    <main className="main-content" id="main-tool">
-                        <div className="container">
-                            <div style={{ display: 'flex', gap: '2.5rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                                <div style={{ flex: '1 1 340px', minWidth: 0 }}>
-                                    <PredictionForm onPrediction={handlePrediction} />
-                                </div>
-                                <div style={{ flex: '0 1 320px', minWidth: '260px', maxWidth: '340px' }}>
-                                    <ThresholdSettings thresholds={thresholds} onThresholdChange={handleThresholdChange} />
-                                </div>
+        return (
+            <div className="prediction-form">
+                <h3>Input Parameters</h3>
+                <form onSubmit={handleSubmit}>
+                    <div className="form-grid">
+                        {Object.keys(features).map(key => (
+                            <div key={key} className="form-group">
+                                <label>
+                                    {key.replace(/_/g, ' ')}
+                                    <input
+                                        type="number"
+                                        className="inline-input"
+                                        name={key}
+                                        value={features[key]}
+                                        onChange={handleInputChange}
+                                        min={inputParams[key].min}
+                                        max={inputParams[key].max}
+                                        step={inputParams[key].step}
+                                        disabled={isLoading}
+                                    />
+                                </label>
+                                <input
+                                    type="range"
+                                    name={key}
+                                    value={features[key]}
+                                    onChange={handleInputChange}
+                                    min={inputParams[key].min}
+                                    max={inputParams[key].max}
+                                    step={inputParams[key].step}
+                                    disabled={isLoading}
+                                />
                             </div>
-                            {predictionResult && (
-                                <div className="result-container">
-                                    <h3>Prediction Result</h3>
-                                    {predictionResult.error ? (
-                                        <p className="risk-level" style={{color: 'var(--risk-critical)'}}>Error: {predictionResult.error}</p>
-                                    ) : (
-                                        <div>
-                                            <p>
-                                                Risk Level:
-                                                <span
-                                                    className="risk-level"
-                                                    style={{ color: `var(--risk-${(predictionResult.risk_level || 'low').toLowerCase()})` }}
-                                                >
-                                                    {` ${predictionResult.risk_level || 'N/A'}`}
-                                                </span>
-                                            </p>
-                                            <p>
-                                                Probability of Failure: {(predictionResult.probability_of_rockfall * 100).toFixed(2)}%
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    </main>
-                    <Footer />
-                    <ThemeToggleButton theme={theme} toggleTheme={toggleTheme} />
-                </React.Fragment>
-            );
-        }
+                        ))}
+                    </div>
+                    <button type="submit" className="predict-button" disabled={isLoading}>
+                        {isLoading ? 'Calculating...' : 'Calculate Risk'}
+                    </button>
+                </form>
+            </div>
+        );
+    }
 
-        const container = document.getElementById('root');
-        const root = ReactDOM.createRoot(container);
-        root.render(<App />);
+
+    // Footer: Site footer
+    function Footer() {
+        return (
+            <footer className="site-footer">
+                <p>&copy; 2025 Rockfall Prediction Systems</p>
+            </footer>
+        );
+    }
+
+
+    // ThemeToggleButton: Light/dark mode toggle
+    function ThemeToggleButton({ theme, toggleTheme }) {
+        const sunIcon = (
+            <svg className="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+        );
+        const moonIcon = (
+            <svg className="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+        );
+        return (
+            <button className="theme-toggle-button" onClick={toggleTheme} aria-label="Toggle theme">
+                {sunIcon}{moonIcon}
+            </button>
+        );
+    }
+
+
+
+    // App: Main application component
+    function App() {
+        const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
+        const [predictionResult, setPredictionResult] = useState(null);
+        // Thresholds state for dashboard and backend
+        const [thresholds, setThresholds] = useState({
+            guarded: 0.45,
+            elevated: 0.70,
+            critical: 0.95
+        });
+
+        // Mouse movement for dynamic background
+        useEffect(() => {
+            const handleMouseMove = (e) => {
+                const bg = document.getElementById('dynamic-bg');
+                if (bg) {
+                    const x = e.clientX / window.innerWidth * 100;
+                    const y = e.clientY / window.innerHeight * 100;
+                    bg.style.setProperty('--mouse-x', `${x}%`);
+                    bg.style.setProperty('--mouse-y', `${y}%`);
+                }
+            };
+            window.addEventListener('mousemove', handleMouseMove);
+            return () => window.removeEventListener('mousemove', handleMouseMove);
+        }, []);
+
+        // Theme toggle (light/dark)
+        useEffect(() => {
+            document.body.className = theme === 'light' ? 'light-mode' : '';
+            localStorage.setItem('theme', theme);
+        }, [theme]);
+
+        // Toggle theme handler
+        const toggleTheme = () => setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+        // Prediction result handler
+        const handlePrediction = (result) => setPredictionResult(result);
+        // Threshold change handler
+        const handleThresholdChange = (name, value) => {
+            setThresholds(prev => ({ ...prev, [name]: value }));
+        };
+
+        return (
+            <React.Fragment>
+                <Navbar />
+                <HeroSection />
+                <main className="main-content" id="main-tool">
+                    <div className="container">
+                        <div style={{ display: 'flex', gap: '2.5rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                            <div style={{ flex: '1 1 340px', minWidth: 0 }}>
+                                <PredictionForm onPrediction={handlePrediction} />
+                            </div>
+                            <div style={{ flex: '0 1 320px', minWidth: '260px', maxWidth: '340px' }}>
+                                <ThresholdSettings thresholds={thresholds} onThresholdChange={handleThresholdChange} />
+                            </div>
+                        </div>
+                        {predictionResult && (
+                            <div className="result-container">
+                                <h3>Prediction Result</h3>
+                                {predictionResult.error ? (
+                                    <p className="risk-level" style={{color: 'var(--risk-critical)'}}>Error: {predictionResult.error}</p>
+                                ) : (
+                                    <div>
+                                        <p>
+                                            Risk Level:
+                                            <span
+                                                className="risk-level"
+                                                style={{ color: `var(--risk-${(predictionResult.risk_level || 'low').toLowerCase()})` }}
+                                            >
+                                                {` ${predictionResult.risk_level || 'N/A'}`}
+                                            </span>
+                                        </p>
+                                        <p>
+                                            Probability of Failure: {(predictionResult.probability_of_rockfall * 100).toFixed(2)}%
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </main>
+                <Footer />
+                <ThemeToggleButton theme={theme} toggleTheme={toggleTheme} />
+            </React.Fragment>
+        );
+    }
+
+    // Mount the React app
+    const container = document.getElementById('root');
+    const root = ReactDOM.createRoot(container);
+    root.render(<App />);
     </script>
 </body>
 </html>
