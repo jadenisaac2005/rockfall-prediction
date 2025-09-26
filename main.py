@@ -3,14 +3,16 @@
 # ----------------------------------
 # FastAPI backend for rockfall risk prediction, dynamic thresholds, and alerting.
 
-import random
-import pandas as pd
-import joblib
 import logging
-from fastapi import FastAPI, BackgroundTasks
+import random
+from typing import Dict, Tuple
+
+import joblib
+import pandas as pd
+from fastapi import BackgroundTasks, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic_settings import BaseSettings
 from pydantic import BaseModel
+from pydantic_settings import BaseSettings
 from twilio.rest import Client
 
 # =========================================================
@@ -18,17 +20,25 @@ from twilio.rest import Client
 # =========================================================
 
 class Settings(BaseSettings):
-    """App configuration loaded from .env file."""
+    """Application settings read from `.env` using pydantic-settings.
+
+    Default thresholds are provided but can be overridden with environment
+    variables or at runtime via the `/set-thresholds` endpoint.
+    """
     OPTIMAL_THRESHOLD: float = 0.25
     THRESHOLD_GUARDED: float = 0.45
     THRESHOLD_ELEVATED: float = 0.70
     THRESHOLD_CRITICAL: float = 0.95
+
+    # Twilio credentials and phone numbers are required for SMS alerts.
     TWILIO_ACCOUNT_SID: str
     TWILIO_AUTH_TOKEN: str
     TWILIO_PHONE_NUMBER: str
     YOUR_PHONE_NUMBER: str
+
     class Config:
         env_file = ".env"
+
 
 settings = Settings()
 
@@ -59,9 +69,9 @@ app.add_middleware(
 
 try:
     pipeline = joblib.load('rockfall_prediction_pipeline.joblib')
-    logger.info("✅ Full prediction pipeline (scaler + model) loaded successfully!")
+    logger.info("Prediction pipeline loaded (scaler + model).")
 except Exception as e:
-    logger.error(f"❌ Error loading pipeline: {e}")
+    logger.error(f"Error loading pipeline: {e}")
     pipeline = None
 
 # =========================================================
@@ -69,7 +79,7 @@ except Exception as e:
 # =========================================================
 
 class RockfallFeatures(BaseModel):
-    """Input features for rockfall prediction."""
+    """Request model containing all numeric features required by the model."""
     slope_angle: float
     rainfall_last_24h: float
     displacement_rate: float
@@ -77,7 +87,7 @@ class RockfallFeatures(BaseModel):
     image_crack_score: float
 
 class ThresholdUpdate(BaseModel):
-    """Model for updating risk thresholds via API."""
+    """Payload model for updating in-memory risk thresholds at runtime."""
     guarded: float
     elevated: float
     critical: float
@@ -86,8 +96,11 @@ class ThresholdUpdate(BaseModel):
 # 5. CORE BUSINESS LOGIC
 # =========================================================
 
-def get_risk_level(probability: float):
-    """Classify risk level and color based on probability and thresholds."""
+def get_risk_level(probability: float) -> Tuple[str, str]:
+    """Return a (risk_level, color) tuple given a probability and current thresholds.
+
+    Colors are simple labels used by the frontend (not strict hex values).
+    """
     if probability >= settings.THRESHOLD_CRITICAL:
         return "CRITICAL", "red"
     if probability >= settings.THRESHOLD_ELEVATED:
@@ -96,41 +109,50 @@ def get_risk_level(probability: float):
         return "GUARDED", "yellow"
     return "LOW", "green"
 
-def send_sms_alert(features: dict, probability: float):
-    """Send SMS alert via Twilio if risk is critical."""
+def send_sms_alert(features: Dict[str, float], probability: float) -> None:
+    """Send a CRITICAL alert SMS using Twilio.
+
+    The function logs success/failure. It is intended to run as a background task
+    (so errors should not interrupt the API response).
+    """
     try:
         client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
         details = "\n".join([f"- {k.replace('_', ' ').title()}: {v}" for k, v in features.items()])
         message_body = (
-            f"CRITICAL RISK ALERT:\n"
-            f"A simulation exceeded the CRITICAL threshold.\n"
+            "CRITICAL RISK ALERT:\n"
+            "A simulation exceeded the CRITICAL threshold.\n"
             f"Risk Probability: {probability:.2%}\n\n"
             f"Input Parameters:\n{details}"
         )
         message = client.messages.create(
             body=message_body,
             from_=settings.TWILIO_PHONE_NUMBER,
-            to=settings.YOUR_PHONE_NUMBER
+            to=settings.YOUR_PHONE_NUMBER,
         )
-        logger.info(f"✅ CRITICAL alert sent successfully! SID: {message.sid}")
+        logger.info(f"CRITICAL alert sent, SID={message.sid}")
     except Exception as e:
-        logger.error(f"❌ Failed to send CRITICAL alert. Error: {e}")
+        logger.exception("Failed to send CRITICAL SMS alert")
 
 # =========================================================
 # 6. API ENDPOINTS
 # =========================================================
 
 @app.get("/")
-def read_root():
-    """Health check endpoint."""
-    return {"message": "Welcome to the Rockfall Prediction API!"}
+def read_root() -> Dict[str, str]:
+    """Simple health-check/root endpoint."""
+    return {"message": "Rockfall Prediction API is running"}
 
 @app.post("/predict")
 def predict_rockfall(features: RockfallFeatures, background_tasks: BackgroundTasks):
-    """Predict rockfall risk and trigger alert if critical."""
+    """Predict the probability of rockfall and return a risk summary.
+
+    If the result is CRITICAL (and the input isn't all zeros) an SMS alert is
+    queued as a background task so the API response is not blocked.
+    """
     if pipeline is None:
         return {"error": "Prediction pipeline is not loaded."}
 
+    # Prepare input with the derived interaction feature used during training
     feature_dict = features.dict()
     feature_dict['rainfall_x_slope'] = feature_dict['rainfall_last_24h'] * feature_dict['slope_angle']
     model_feature_names = [
@@ -139,27 +161,37 @@ def predict_rockfall(features: RockfallFeatures, background_tasks: BackgroundTas
     ]
     input_df = pd.DataFrame([feature_dict], columns=model_feature_names)
 
-    probability = pipeline.predict_proba(input_df)[0][1]
+    probability = float(pipeline.predict_proba(input_df)[0][1])
     risk_level, color = get_risk_level(probability)
-    is_zero_input = all(value == 0 for value in features.dict().values())
 
+    # Avoid spurious alerts when the user submits an all-zero feature vector
+    is_zero_input = all(value == 0 for value in features.dict().values())
     if risk_level == "CRITICAL" and not is_zero_input:
-        logger.info("🚨 CRITICAL risk detected! Adding SMS alert to background tasks.")
+        logger.info("CRITICAL risk detected — queueing SMS alert")
         background_tasks.add_task(send_sms_alert, features.dict(), probability)
 
     return {
         "risk_level": risk_level,
         "color": color,
-        "probability_of_rockfall": float(probability)
+        "probability_of_rockfall": probability,
     }
 
 @app.post("/set-thresholds")
 def set_thresholds(new_thresholds: ThresholdUpdate):
-    """Dynamically updates the risk thresholds in the running application."""
+    """Update the in-memory risk thresholds used for classification.
+
+    These changes are not persisted to disk; they only affect the running
+    instance and will be reset when the process restarts.
+    """
     settings.THRESHOLD_GUARDED = new_thresholds.guarded
     settings.THRESHOLD_ELEVATED = new_thresholds.elevated
     settings.THRESHOLD_CRITICAL = new_thresholds.critical
-    logger.info(f"✅ Risk thresholds updated to: GUARDED={settings.THRESHOLD_GUARDED}, ELEVATED={settings.THRESHOLD_ELEVATED}, CRITICAL={settings.THRESHOLD_CRITICAL}")
+    logger.info(
+        "Risk thresholds updated: GUARDED=%s, ELEVATED=%s, CRITICAL=%s",
+        settings.THRESHOLD_GUARDED,
+        settings.THRESHOLD_ELEVATED,
+        settings.THRESHOLD_CRITICAL,
+    )
     return {"message": "Thresholds updated successfully", "new_thresholds": new_thresholds.dict()}
 
 # =========================================================
@@ -175,7 +207,11 @@ mine_zones = {
 
 @app.get("/risk-map")
 def get_risk_map_data():
-    """Returns simulated risk data for each mine zone."""
+    """Return simulated risk summaries for configured mine zones.
+
+    Each zone uses its `base_features` and a small random multiplier to
+    emulate small environmental variations.
+    """
     if pipeline is None:
         return {"error": "Prediction pipeline is not loaded."}
 
@@ -183,21 +219,22 @@ def get_risk_map_data():
     feature_names = ['slope_angle', 'rainfall_last_24h', 'displacement_rate', 'pore_pressure', 'image_crack_score']
 
     for zone_id, zone_info in mine_zones.items():
-        simulated_data = [val * random.uniform(0.95, 1.05) for val in zone_info["base_features"]]
+        simulated_data = [val * random.uniform(0.95, 1.05) for val in zone_info['base_features']]
         feature_dict = dict(zip(feature_names, simulated_data))
         feature_dict['rainfall_x_slope'] = feature_dict['rainfall_last_24h'] * feature_dict['slope_angle']
 
         model_feature_names = feature_names + ['rainfall_x_slope']
         input_df = pd.DataFrame([feature_dict], columns=model_feature_names)
-        probability = pipeline.predict_proba(input_df)[0][1]
+        probability = float(pipeline.predict_proba(input_df)[0][1])
         risk_level, color = get_risk_level(probability)
 
         risk_data.append({
-            "zone_id": zone_id,
-            "name": zone_info["name"],
-            "coords": [zone_info["lat"], zone_info["lon"]],
-            "risk_level": risk_level,
-            "color": color,
-            "probability": float(probability)
+            'zone_id': zone_id,
+            'name': zone_info['name'],
+            'coords': [zone_info['lat'], zone_info['lon']],
+            'risk_level': risk_level,
+            'color': color,
+            'probability': probability,
         })
+
     return risk_data
