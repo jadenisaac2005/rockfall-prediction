@@ -118,6 +118,30 @@ def search_optimal_threshold(y_true, probs, thresholds=None):
     return best_threshold, best_f1, per_threshold_scores
 
 
+def evaluate_at_cutoff(y_true, probs, cutoff: float) -> dict:
+    """Evaluate binary predictions (probs >= cutoff) against y_true.
+
+    Returns share of rows at or above the cutoff, precision/recall/FPR for
+    the positive (rockfall) class, and the raw counts behind them.
+    """
+    preds = (probs >= cutoff).astype(int)
+    precision, recall, _, _ = precision_recall_fscore_support(y_true, preds, average='binary', zero_division=0)
+    tn, fp, fn, tp = confusion_matrix(y_true, preds).ravel()
+    fpr = fp / (fp + tn) if (fp + tn) > 0 else 0.0
+    return {
+        'cutoff': cutoff,
+        'rows_at_or_above': int(tp + fp),
+        'share_of_test_at_or_above': float((tp + fp) / len(y_true)),
+        'precision': float(precision),
+        'recall': float(recall),
+        'false_positive_rate': float(fpr),
+        'true_positives': int(tp),
+        'false_positives': int(fp),
+        'true_negatives': int(tn),
+        'false_negatives': int(fn),
+    }
+
+
 def main():
     # Configuration
     data_path = 'data/synthetic_slope_stability_dataset.csv'
@@ -177,6 +201,31 @@ def main():
     print(f"PR-AUC (test): {pr_auc:.4f}")
     print(f"False positive rate at threshold {best_threshold:.2f} (test): {false_positive_rate:.4f}")
 
+    # Evaluate at the API's actual, hand-set risk cutoffs (main.py's
+    # Settings defaults: THRESHOLD_GUARDED/ELEVATED/CRITICAL). These are
+    # independent of the validation-chosen threshold above; this block
+    # measures what the deployed API's risk levels actually do on the test
+    # split, not what an F1-optimal cutoff would do.
+    api_cutoffs = {
+        'guarded': evaluate_at_cutoff(y_test, test_probs, 0.45),
+        'elevated': evaluate_at_cutoff(y_test, test_probs, 0.70),
+        'critical': evaluate_at_cutoff(y_test, test_probs, 0.95),
+    }
+
+    print("\nEvaluation at the API's risk cutoffs (test split):")
+    print("Level    | Cutoff | Rows>=cutoff | Share  | Precision | Recall | FPR")
+    print("--------------------------------------------------------------------")
+    for level, m in api_cutoffs.items():
+        print(f"{level:8s} | {m['cutoff']:6.2f} | {m['rows_at_or_above']:12d} | "
+              f"{m['share_of_test_at_or_above']:6.2%} | {m['precision']:9.4f} | {m['recall']:6.4f} | {m['false_positive_rate']:.4f}")
+
+    critical = api_cutoffs['critical']
+    total_rockfall_events = int((y_test == 1).sum())
+    print(f"\nCRITICAL / SMS trigger (probability >= 0.95), out of {len(y_test)} test rows:")
+    print(f"  Rows that would trigger an SMS: {critical['rows_at_or_above']}")
+    print(f"  Of those, fraction that are real rockfall events (precision): {critical['precision']:.4f}")
+    print(f"  Fraction of all {total_rockfall_events} real rockfall events that get an SMS (recall): {critical['recall']:.4f}")
+
     # Save trained pipeline (scaler + model) — this is the exact model evaluated above
     joblib.dump(pipeline, pipeline_filename)
     print(f"\nSaved pipeline to '{pipeline_filename}'")
@@ -199,6 +248,11 @@ def main():
         'roc_auc_test': float(roc_auc),
         'pr_auc_test': float(pr_auc),
         'false_positive_rate_test': float(false_positive_rate),
+        'api_cutoffs': {
+            'note': "Evaluated at main.py's actual, hand-set risk cutoffs (Settings defaults) on the test split — independent of optimal_threshold above.",
+            'sms_trigger': 'critical',
+            **api_cutoffs,
+        },
         'train_shape': list(X_train.shape),
         'validation_shape': list(X_val.shape),
         'test_shape': list(X_test.shape),

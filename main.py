@@ -24,7 +24,6 @@ class Settings(BaseSettings):
     Default thresholds are provided but can be overridden with environment
     variables or at runtime via the `/set-thresholds` endpoint.
     """
-    OPTIMAL_THRESHOLD: float = 0.25
     THRESHOLD_GUARDED: float = 0.45
     THRESHOLD_ELEVATED: float = 0.70
     THRESHOLD_CRITICAL: float = 0.95

@@ -148,6 +148,46 @@
   "roc_auc_test": 0.7504931350803691,
   "pr_auc_test": 0.8551287350792757,
   "false_positive_rate_test": 0.8326241134751773,
+  "api_cutoffs": {
+    "note": "Evaluated at main.py's actual, hand-set risk cutoffs (Settings defaults) on the test split \u2014 independent of optimal_threshold above.",
+    "sms_trigger": "critical",
+    "guarded": {
+      "cutoff": 0.45,
+      "rows_at_or_above": 11849,
+      "share_of_test_at_or_above": 0.59245,
+      "precision": 0.7834416406447802,
+      "recall": 0.7168339768339769,
+      "false_positive_rate": 0.3639716312056738,
+      "true_positives": 9283,
+      "false_positives": 2566,
+      "true_negatives": 4484,
+      "false_negatives": 3667
+    },
+    "elevated": {
+      "cutoff": 0.7,
+      "rows_at_or_above": 6209,
+      "share_of_test_at_or_above": 0.31045,
+      "precision": 0.8819455628925753,
+      "recall": 0.4228571428571429,
+      "false_positive_rate": 0.10397163120567376,
+      "true_positives": 5476,
+      "false_positives": 733,
+      "true_negatives": 6317,
+      "false_negatives": 7474
+    },
+    "critical": {
+      "cutoff": 0.95,
+      "rows_at_or_above": 2286,
+      "share_of_test_at_or_above": 0.1143,
+      "precision": 0.9829396325459318,
+      "recall": 0.17351351351351352,
+      "false_positive_rate": 0.005531914893617021,
+      "true_positives": 2247,
+      "false_positives": 39,
+      "true_negatives": 7011,
+      "false_negatives": 10703
+    }
+  },
   "train_shape": [
     60000,
     6
