@@ -8,7 +8,9 @@ AI-Based Rockfall Prediction and Alert System for Open-Pit Mines
 
 ## 📊 Model & Data
 
-The model is trained on `data/synthetic_slope_stability_dataset.csv` — **synthetically generated data**, not real sensor readings from a mine. It's used to demonstrate the pipeline (SMOTE → StandardScaler → XGBoost/RandomForest ensemble → threshold search) end-to-end. Evaluation metrics (classification report, per-threshold precision/recall/F1, confusion matrix) are computed by `train_model.py` on every run and written to `results/metrics.json` — see that file for actual numbers rather than assuming any.
+The model is trained on `data/synthetic_slope_stability_dataset.csv` — **synthetically generated data**, not real sensor readings from a mine. It's used to demonstrate the pipeline (SMOTE → StandardScaler → XGBoost) end-to-end. `train_model.py` trains and evaluates the exact pipeline that gets saved to `rockfall_prediction_pipeline.joblib` and served by `main.py` — nothing else is trained or averaged in. It splits the data 60/20/20 (train/validation/test, stratified), picks a classification threshold on the validation split by maximizing F1, then reports metrics once on the held-out test split. Metrics (classification report, per-threshold precision/recall/F1, confusion matrix, ROC-AUC, PR-AUC, majority-class baseline, false-positive rate) are written to `results/metrics.json` on every run — see that file for actual numbers rather than assuming any.
+
+**The validation-chosen threshold is not wired into the API.** `main.py`'s risk levels use four independent, hand-set cutoffs on the raw probability (`THRESHOLD_GUARDED=0.45`, `THRESHOLD_ELEVATED=0.70`, `THRESHOLD_CRITICAL=0.95`, defined in `main.py`'s `Settings`), adjustable at runtime via `/set-thresholds`. `train_model.py`'s F1-optimal threshold is printed and saved to `results/metrics.json` for reference only — it is not read by `main.py` and has no code-level relationship to GUARDED/ELEVATED/CRITICAL.
 
 ## 🚀 Key Features
 

@@ -1,137 +1,130 @@
 {
-  "ensemble": {
-    "members": [
-      "xgboost_pipeline (SMOTE->StandardScaler->XGBClassifier)",
-      "randomforest_pipeline (SMOTE->StandardScaler->RandomForestClassifier)"
-    ],
-    "combination": "unweighted average of predict_proba",
-    "deployed_pipeline": "xgboost_pipeline only \u2014 the RandomForest half is used for threshold selection but is NOT part of what main.py loads and serves"
-  },
-  "threshold_selection": "chosen on the validation split, evaluated once on a held-out test split",
-  "optimal_threshold": 0.3,
-  "optimal_threshold_validation_f1": 0.8017526911399393,
+  "model": "xgboost_pipeline (SMOTE->StandardScaler->XGBClassifier) \u2014 the exact pipeline saved to rockfall_prediction_pipeline.joblib and served by main.py",
+  "threshold_selection": "chosen on the validation split (max F1), evaluated once on a held-out test split",
+  "optimal_threshold": 0.2,
+  "optimal_threshold_validation_f1": 0.7996410716574798,
   "per_threshold_scores_validation": [
     {
       "threshold": 0.1,
-      "precision": 0.6495456142993423,
-      "recall": 0.998996138996139,
-      "f1": 0.7872333951988316
+      "precision": 0.6532131463007039,
+      "recall": 0.996061776061776,
+      "f1": 0.789002049117656
     },
     {
       "threshold": 0.15,
-      "precision": 0.6620568656793436,
-      "recall": 0.9907335907335907,
-      "f1": 0.7937146215472176
+      "precision": 0.6666144854936339,
+      "recall": 0.9864864864864865,
+      "f1": 0.7956031637292147
     },
     {
       "threshold": 0.2,
-      "precision": 0.6803855734864075,
-      "recall": 0.9701930501930502,
-      "f1": 0.7998472116119175
+      "precision": 0.6834666374493261,
+      "recall": 0.9633976833976834,
+      "f1": 0.7996410716574798
     },
     {
       "threshold": 0.25,
-      "precision": 0.6998787738844311,
-      "recall": 0.9362162162162162,
-      "f1": 0.8009777689690484
+      "precision": 0.7025746050321826,
+      "recall": 0.9271814671814672,
+      "f1": 0.7994007989347537
     },
     {
       "threshold": 0.3,
-      "precision": 0.7246476237994263,
-      "recall": 0.8972200772200772,
-      "f1": 0.8017526911399393
+      "precision": 0.7239662128088754,
+      "recall": 0.8868725868725869,
+      "f1": 0.7971819254529048
     },
     {
       "threshold": 0.35,
-      "precision": 0.7452727520065298,
-      "recall": 0.8461003861003861,
-      "f1": 0.7924924056126139
+      "precision": 0.746207942636514,
+      "recall": 0.8357528957528958,
+      "f1": 0.7884461280687696
     },
     {
       "threshold": 0.4,
-      "precision": 0.7715782281940332,
-      "recall": 0.7848648648648648,
-      "f1": 0.7781648355854993
+      "precision": 0.7690310758188899,
+      "recall": 0.7777606177606178,
+      "f1": 0.7733712135754598
     },
     {
       "threshold": 0.45,
-      "precision": 0.7947976878612717,
-      "recall": 0.722007722007722,
-      "f1": 0.7566561463138303
+      "precision": 0.7893842887473461,
+      "recall": 0.7177606177606177,
+      "f1": 0.7518705763397371
     },
     {
       "threshold": 0.5,
-      "precision": 0.8167728439669107,
-      "recall": 0.6633204633204633,
-      "f1": 0.732091873694976
+      "precision": 0.8094471790988262,
+      "recall": 0.6603088803088804,
+      "f1": 0.7273113889597687
     },
     {
       "threshold": 0.55,
-      "precision": 0.8360673314034524,
-      "recall": 0.6021621621621621,
-      "f1": 0.7000942676302914
+      "precision": 0.8301967038809144,
+      "recall": 0.602934362934363,
+      "f1": 0.6985461865354506
     },
     {
       "threshold": 0.6,
-      "precision": 0.8578394598649662,
-      "recall": 0.5298069498069498,
-      "f1": 0.6550506014894023
+      "precision": 0.8501999757605139,
+      "recall": 0.5416988416988417,
+      "f1": 0.6617612376774681
     },
     {
       "threshold": 0.65,
-      "precision": 0.8807433421129646,
-      "recall": 0.4647876447876448,
-      "f1": 0.6084714921148403
+      "precision": 0.8667408540826262,
+      "recall": 0.48115830115830116,
+      "f1": 0.6187993445553404
     },
     {
       "threshold": 0.7,
-      "precision": 0.9011348005502063,
-      "recall": 0.40471042471042473,
-      "f1": 0.558563359266759
+      "precision": 0.8864516129032258,
+      "recall": 0.42440154440154443,
+      "f1": 0.5739947780678851
     },
     {
       "threshold": 0.75,
-      "precision": 0.9260240472793968,
-      "recall": 0.3508880308880309,
-      "f1": 0.5089320714565716
+      "precision": 0.9079073329504116,
+      "recall": 0.3661776061776062,
+      "f1": 0.5218731084576019
     },
     {
       "threshold": 0.8,
-      "precision": 0.9485981308411215,
-      "recall": 0.29783783783783785,
-      "f1": 0.45333803479078516
+      "precision": 0.9309486076522526,
+      "recall": 0.31752895752895754,
+      "f1": 0.4735417746300455
     },
     {
       "threshold": 0.85,
-      "precision": 0.9672424061941632,
-      "recall": 0.2508108108108108,
-      "f1": 0.39833210694137844
+      "precision": 0.9558498896247241,
+      "recall": 0.2674903474903475,
+      "f1": 0.4180041028116327
     }
   ],
   "classification_report_test": {
     "0": {
-      "precision": 0.6393737166324436,
-      "recall": 0.35333333333333333,
-      "f1-score": 0.45514343139046226,
+      "precision": 0.7070101857399641,
+      "recall": 0.1673758865248227,
+      "f1-score": 0.27067324234430556,
       "support": 7050.0
     },
     "1": {
-      "precision": 0.7169026328862395,
-      "recall": 0.8915057915057915,
-      "f1-score": 0.7947270599573208,
+      "precision": 0.6797774262178823,
+      "recall": 0.9622393822393822,
+      "f1-score": 0.7967136600492312,
       "support": 12950.0
     },
-    "accuracy": 0.7018,
+    "accuracy": 0.68205,
     "macro avg": {
-      "precision": 0.6781381747593416,
-      "recall": 0.6224195624195624,
-      "f1-score": 0.6249352456738916,
+      "precision": 0.6933938059789232,
+      "recall": 0.5648076343821025,
+      "f1-score": 0.5336934511967684,
       "support": 20000.0
     },
     "weighted avg": {
-      "precision": 0.6895736899067764,
-      "recall": 0.7018,
-      "f1-score": 0.6750238308875032,
+      "precision": 0.6893769739494161,
+      "recall": 0.68205,
+      "f1-score": 0.6112844128082449,
       "support": 20000.0
     }
   },
@@ -142,19 +135,19 @@
     ],
     "matrix": [
       [
-        2491,
-        4559
+        1180,
+        5870
       ],
       [
-        1405,
-        11545
+        489,
+        12461
       ]
     ]
   },
   "majority_class_baseline_accuracy_test": 0.6475,
-  "roc_auc_test": 0.7565572003614557,
-  "pr_auc_test": 0.8589997912539606,
-  "false_positive_rate_test": 0.6466666666666666,
+  "roc_auc_test": 0.7504931350803691,
+  "pr_auc_test": 0.8551287350792757,
+  "false_positive_rate_test": 0.8326241134751773,
   "train_shape": [
     60000,
     6

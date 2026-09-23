@@ -1,14 +1,15 @@
 """train_model.py
 Train and export a rockfall prediction pipeline.
 
-This script trains two classifiers (XGBoost and RandomForest) using a small
-pipeline (SMOTE -> StandardScaler -> estimator), evaluates an average
-ensemble of their probabilities, searches for an optimal classification
-threshold, prints evaluation metrics, and saves the final pipeline.
+This script trains a single pipeline (SMOTE -> StandardScaler -> XGBoost),
+searches for an optimal classification threshold on a validation split,
+reports evaluation metrics on a held-out test split, and saves the pipeline.
 
 Notes:
-- The saved pipeline is the trained XGBoost pipeline (scaler + model).
-- The ensemble threshold is printed for `main.py` to consume.
+- The saved pipeline (rockfall_prediction_pipeline.joblib) is exactly the
+  model that is evaluated here — every reported metric describes it.
+- The chosen threshold is printed and saved for reference; main.py does not
+  currently read it (see README's "Model & Data" section).
 """
 
 from typing import Tuple
@@ -22,7 +23,6 @@ import pandas as pd
 import xgboost as xgb
 from imblearn.pipeline import Pipeline as ImbPipeline
 from imblearn.over_sampling import SMOTE
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import (
@@ -64,11 +64,10 @@ def prepare_features(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series]:
     return X, y
 
 
-def build_pipelines(random_state: int = 42):
-    """Construct two training pipelines: XGBoost and RandomForest.
+def build_pipeline(random_state: int = 42):
+    """Construct the XGBoost training pipeline (SMOTE -> StandardScaler -> XGBoost).
 
-    Each pipeline has the same preprocessing (SMOTE + StandardScaler) so we
-    can compare model probabilities fairly.
+    This is exactly the pipeline that gets saved and served by main.py.
     """
     xgb_clf = xgb.XGBClassifier(
         objective='binary:logistic',
@@ -80,24 +79,14 @@ def build_pipelines(random_state: int = 42):
         n_estimators=200,
     )
 
-    rf_clf = RandomForestClassifier(n_estimators=200, max_depth=10, random_state=random_state, n_jobs=-1)
-
-    xgb_pipeline = ImbPipeline([
+    return ImbPipeline([
         ('smote', SMOTE(random_state=random_state)),
         ('scaler', StandardScaler()),
         ('xgb', xgb_clf),
     ])
 
-    rf_pipeline = ImbPipeline([
-        ('smote', SMOTE(random_state=random_state)),
-        ('scaler', StandardScaler()),
-        ('rf', rf_clf),
-    ])
 
-    return xgb_pipeline, rf_pipeline
-
-
-def search_optimal_threshold(y_true, ensemble_probs, thresholds=None):
+def search_optimal_threshold(y_true, probs, thresholds=None):
     """Search a list of thresholds and return the best threshold by F1 score.
 
     Returns (best_threshold, best_f1, per_threshold_scores) where
@@ -113,7 +102,7 @@ def search_optimal_threshold(y_true, ensemble_probs, thresholds=None):
     print("Threshold | Precision | Recall    | F1-Score")
     print("---------------------------------------------")
     for threshold in thresholds:
-        preds = (ensemble_probs >= threshold).astype(int)
+        preds = (probs >= threshold).astype(int)
         precision, recall, f1, _ = precision_recall_fscore_support(y_true, preds, average='binary', zero_division=0)
         print(f"{threshold:9.2f} | {precision:9.2f} | {recall:9.2f} | {f1:9.2f}")
         per_threshold_scores.append({
@@ -149,40 +138,26 @@ def main():
     print(f"Validation set shape: {X_val.shape}")
     print(f"Test set shape: {X_test.shape}")
 
-    # Build pipelines and train (on the training split only)
-    xgb_pipeline, rf_pipeline = build_pipelines(random_state=42)
+    # Build and train the pipeline (on the training split only). This is
+    # exactly the pipeline saved below and served by main.py — every metric
+    # computed past this point describes this model, not a variant of it.
+    pipeline = build_pipeline(random_state=42)
     print("\nTraining XGBoost pipeline...")
-    xgb_pipeline.fit(X_train, y_train)
+    pipeline.fit(X_train, y_train)
     print("XGBoost training complete.")
 
-    print("\nTraining Random Forest pipeline...")
-    rf_pipeline.fit(X_train, y_train)
-    print("Random Forest training complete.")
-
-    # NOTE: the "ensemble" below is the plain average of two models'
-    # predicted probabilities: this XGBoost pipeline and a separate
-    # RandomForest pipeline (both SMOTE -> StandardScaler -> estimator).
-    # Only the XGBoost pipeline is saved and served by main.py — the
-    # RandomForest half of the ensemble is NOT part of the deployed model.
-    # The threshold chosen here is therefore tuned for the two-model
-    # average, not for the single XGBoost pipeline main.py actually runs.
-
     # Threshold selection on the validation split
-    print("\nEvaluating ensemble performance on validation split...")
-    val_probs_xgb = xgb_pipeline.predict_proba(X_val)[:, 1]
-    val_probs_rf = rf_pipeline.predict_proba(X_val)[:, 1]
-    val_ensemble_probs = (val_probs_xgb + val_probs_rf) / 2.0
+    print("\nEvaluating on validation split...")
+    val_probs = pipeline.predict_proba(X_val)[:, 1]
 
-    print("\nSearching for optimal ensemble threshold (on validation split)...")
-    best_threshold, best_f1, per_threshold_scores = search_optimal_threshold(y_val, val_ensemble_probs)
-    print(f"\nOptimal ENSEMBLE threshold (chosen on validation): {best_threshold:.2f} (validation F1 = {best_f1:.2f})")
+    print("\nSearching for optimal threshold (on validation split)...")
+    best_threshold, best_f1, per_threshold_scores = search_optimal_threshold(y_val, val_probs)
+    print(f"\nOptimal threshold (chosen on validation): {best_threshold:.2f} (validation F1 = {best_f1:.2f})")
 
     # Final, one-time report on the untouched test split
-    test_probs_xgb = xgb_pipeline.predict_proba(X_test)[:, 1]
-    test_probs_rf = rf_pipeline.predict_proba(X_test)[:, 1]
-    test_ensemble_probs = (test_probs_xgb + test_probs_rf) / 2.0
+    test_probs = pipeline.predict_proba(X_test)[:, 1]
 
-    final_preds = (test_ensemble_probs >= best_threshold).astype(int)
+    final_preds = (test_probs >= best_threshold).astype(int)
     report_text = classification_report(y_test, final_preds, zero_division=0)
     report_dict = classification_report(y_test, final_preds, zero_division=0, output_dict=True)
     cm = confusion_matrix(y_test, final_preds)
@@ -193,8 +168,8 @@ def main():
     # Additional test-set metrics
     majority_class = y_test.value_counts().idxmax()
     majority_baseline_accuracy = (y_test == majority_class).mean()
-    roc_auc = roc_auc_score(y_test, test_ensemble_probs)
-    pr_auc = average_precision_score(y_test, test_ensemble_probs)
+    roc_auc = roc_auc_score(y_test, test_probs)
+    pr_auc = average_precision_score(y_test, test_probs)
     false_positive_rate = fp / (fp + tn) if (fp + tn) > 0 else 0.0
 
     print(f"\nMajority-class baseline accuracy (test): {majority_baseline_accuracy:.4f}")
@@ -202,20 +177,16 @@ def main():
     print(f"PR-AUC (test): {pr_auc:.4f}")
     print(f"False positive rate at threshold {best_threshold:.2f} (test): {false_positive_rate:.4f}")
 
-    # Save trained XGBoost pipeline (scaler + model)
-    joblib.dump(xgb_pipeline, pipeline_filename)
-    print(f"\nSaved XGBoost pipeline to '{pipeline_filename}'")
-    print(f"ACTION: Update 'main.py' to load this pipeline file and use ensemble threshold {best_threshold:.2f} if desired.")
+    # Save trained pipeline (scaler + model) — this is the exact model evaluated above
+    joblib.dump(pipeline, pipeline_filename)
+    print(f"\nSaved pipeline to '{pipeline_filename}'")
+    print(f"NOTE: main.py's risk-level cutoffs (GUARDED/ELEVATED/CRITICAL) are independent of this threshold — see README.")
 
     # Save metrics for reference (not consumed by main.py)
     os.makedirs(os.path.dirname(metrics_path), exist_ok=True)
     metrics = {
-        'ensemble': {
-            'members': ['xgboost_pipeline (SMOTE->StandardScaler->XGBClassifier)', 'randomforest_pipeline (SMOTE->StandardScaler->RandomForestClassifier)'],
-            'combination': 'unweighted average of predict_proba',
-            'deployed_pipeline': 'xgboost_pipeline only — the RandomForest half is used for threshold selection but is NOT part of what main.py loads and serves',
-        },
-        'threshold_selection': 'chosen on the validation split, evaluated once on a held-out test split',
+        'model': 'xgboost_pipeline (SMOTE->StandardScaler->XGBClassifier) — the exact pipeline saved to rockfall_prediction_pipeline.joblib and served by main.py',
+        'threshold_selection': 'chosen on the validation split (max F1), evaluated once on a held-out test split',
         'optimal_threshold': round(float(best_threshold), 2),
         'optimal_threshold_validation_f1': float(best_f1),
         'per_threshold_scores_validation': per_threshold_scores,
