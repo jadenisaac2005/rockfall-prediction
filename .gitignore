@@ -3,9 +3,11 @@ venv/
 
 # Python cache
 __pycache__/
+*.pyc
 
 # Saved Models
 *.json
+!results/metrics.json
 
 #.env
 .env

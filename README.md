@@ -6,6 +6,10 @@ An intelligent, end-to-end system designed to predict and prevent rockfall incid
 
 AI-Based Rockfall Prediction and Alert System for Open-Pit Mines
 
+## 📊 Model & Data
+
+The model is trained on `data/synthetic_slope_stability_dataset.csv` — **synthetically generated data**, not real sensor readings from a mine. It's used to demonstrate the pipeline (SMOTE → StandardScaler → XGBoost/RandomForest ensemble → threshold search) end-to-end. Evaluation metrics (classification report, per-threshold precision/recall/F1, confusion matrix) are computed by `train_model.py` on every run and written to `results/metrics.json` — see that file for actual numbers rather than assuming any.
+
 ## 🚀 Key Features
 
 - **⚡ Real-Time Prediction API** — FastAPI backend serving model predictions in milliseconds.
@@ -44,20 +48,27 @@ source venv/bin/activate  # On Windows: .\venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-Create a `.env` file in the project root with your Twilio credentials and phone numbers:
+Copy `.env.example` to `.env`:
 
+```bash
+cp .env.example .env
 ```
-TWILIO_ACCOUNT_SID=...
-TWILIO_AUTH_TOKEN=...
-TWILIO_PHONE_NUMBER=...
-YOUR_PHONE_NUMBER=...
-```
+
+The placeholder values in `.env.example` are enough to run the app locally — the backend boots and `/predict` works with the demo model. SMS alerting is simply skipped until you fill in real Twilio credentials and phone numbers.
 
 Launch the FastAPI server:
 
 ```bash
 uvicorn main:app --reload
 ```
+
+(Optional) Retrain the model and regenerate evaluation metrics:
+
+```bash
+python train_model.py
+```
+
+This overwrites `rockfall_prediction_pipeline.joblib` and writes evaluation metrics (classification report, per-threshold precision/recall/F1, confusion matrix) to `results/metrics.json`.
 
 ### 2. Frontend Dashboard
 
@@ -90,8 +101,9 @@ Use the **Risk Threshold Settings** panel in the dashboard to adjust Guarded, El
 - `frontend/dashboard.html`
 - `requirements.txt`
 - `rockfall_prediction_pipeline.joblib`
-- `data/`
-- `.env`
+- `data/synthetic_slope_stability_dataset.csv` — synthetic training data
+- `results/metrics.json` — evaluation metrics from the last `train_model.py` run
+- `.env` (create from `.env.example`, not committed)
 
 ## 🔮 Future Work
 

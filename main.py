@@ -4,7 +4,6 @@
 # FastAPI backend for rockfall risk prediction, dynamic thresholds, and alerting.
 
 import logging
-import random
 from typing import Dict, Tuple
 
 import joblib
@@ -30,11 +29,13 @@ class Settings(BaseSettings):
     THRESHOLD_ELEVATED: float = 0.70
     THRESHOLD_CRITICAL: float = 0.95
 
-    # Twilio credentials and phone numbers are required for SMS alerts.
-    TWILIO_ACCOUNT_SID: str
-    TWILIO_AUTH_TOKEN: str
-    TWILIO_PHONE_NUMBER: str
-    YOUR_PHONE_NUMBER: str
+    # Twilio credentials and phone numbers. Optional so the backend can boot
+    # for a local demo without real credentials; see .env.example. When left
+    # unset (or set to a placeholder), SMS alerts are skipped — not sent.
+    TWILIO_ACCOUNT_SID: str = ""
+    TWILIO_AUTH_TOKEN: str = ""
+    TWILIO_PHONE_NUMBER: str = ""
+    YOUR_PHONE_NUMBER: str = ""
 
     class Config:
         env_file = ".env"
@@ -109,12 +110,26 @@ def get_risk_level(probability: float) -> Tuple[str, str]:
         return "GUARDED", "yellow"
     return "LOW", "green"
 
+def is_twilio_configured() -> bool:
+    """Return True only if all Twilio settings look like real values."""
+    values = (
+        settings.TWILIO_ACCOUNT_SID,
+        settings.TWILIO_AUTH_TOKEN,
+        settings.TWILIO_PHONE_NUMBER,
+        settings.YOUR_PHONE_NUMBER,
+    )
+    return all(values) and not settings.TWILIO_ACCOUNT_SID.lower().startswith("acplaceholder")
+
 def send_sms_alert(features: Dict[str, float], probability: float) -> None:
     """Send a CRITICAL alert SMS using Twilio.
 
     The function logs success/failure. It is intended to run as a background task
-    (so errors should not interrupt the API response).
+    (so errors should not interrupt the API response). Skipped entirely if
+    Twilio credentials are unset or placeholders (see .env.example).
     """
+    if not is_twilio_configured():
+        logger.info("Twilio not configured — skipping SMS alert.")
+        return
     try:
         client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
         details = "\n".join([f"- {k.replace('_', ' ').title()}: {v}" for k, v in features.items()])
@@ -193,48 +208,3 @@ def set_thresholds(new_thresholds: ThresholdUpdate):
         settings.THRESHOLD_CRITICAL,
     )
     return {"message": "Thresholds updated successfully", "new_thresholds": new_thresholds.dict()}
-
-# =========================================================
-# 7. RISK MAP ENDPOINT
-# =========================================================
-
-mine_zones = {
-    "zone_A": {"name": "North Quarry Face", "lat": 12.9716, "lon": 77.5946, "base_features": [45.0, 15.0, 0.5, 28.0, 0.1]},
-    "zone_B": {"name": "East Haul Road", "lat": 12.9726, "lon": 77.6046, "base_features": [35.0, 80.0, 1.8, 90.0, 0.3]},
-    "zone_C": {"name": "West Overburden Dump", "lat": 12.9706, "lon": 77.5906, "base_features": [48.0, 120.0, 2.5, 200.0, 0.8]},
-    "zone_D": {"name": "South Stockpile", "lat": 12.9696, "lon": 77.5956, "base_features": [30.0, 5.0, 0.2, 20.0, 0.0]}
-}
-
-@app.get("/risk-map")
-def get_risk_map_data():
-    """Return simulated risk summaries for configured mine zones.
-
-    Each zone uses its `base_features` and a small random multiplier to
-    emulate small environmental variations.
-    """
-    if pipeline is None:
-        return {"error": "Prediction pipeline is not loaded."}
-
-    risk_data = []
-    feature_names = ['slope_angle', 'rainfall_last_24h', 'displacement_rate', 'pore_pressure', 'image_crack_score']
-
-    for zone_id, zone_info in mine_zones.items():
-        simulated_data = [val * random.uniform(0.95, 1.05) for val in zone_info['base_features']]
-        feature_dict = dict(zip(feature_names, simulated_data))
-        feature_dict['rainfall_x_slope'] = feature_dict['rainfall_last_24h'] * feature_dict['slope_angle']
-
-        model_feature_names = feature_names + ['rainfall_x_slope']
-        input_df = pd.DataFrame([feature_dict], columns=model_feature_names)
-        probability = float(pipeline.predict_proba(input_df)[0][1])
-        risk_level, color = get_risk_level(probability)
-
-        risk_data.append({
-            'zone_id': zone_id,
-            'name': zone_info['name'],
-            'coords': [zone_info['lat'], zone_info['lon']],
-            'risk_level': risk_level,
-            'color': color,
-            'probability': probability,
-        })
-
-    return risk_data

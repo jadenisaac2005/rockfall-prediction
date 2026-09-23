@@ -1,0 +1,170 @@
+{
+  "ensemble": {
+    "members": [
+      "xgboost_pipeline (SMOTE->StandardScaler->XGBClassifier)",
+      "randomforest_pipeline (SMOTE->StandardScaler->RandomForestClassifier)"
+    ],
+    "combination": "unweighted average of predict_proba",
+    "deployed_pipeline": "xgboost_pipeline only \u2014 the RandomForest half is used for threshold selection but is NOT part of what main.py loads and serves"
+  },
+  "threshold_selection": "chosen on the validation split, evaluated once on a held-out test split",
+  "optimal_threshold": 0.3,
+  "optimal_threshold_validation_f1": 0.8017526911399393,
+  "per_threshold_scores_validation": [
+    {
+      "threshold": 0.1,
+      "precision": 0.6495456142993423,
+      "recall": 0.998996138996139,
+      "f1": 0.7872333951988316
+    },
+    {
+      "threshold": 0.15,
+      "precision": 0.6620568656793436,
+      "recall": 0.9907335907335907,
+      "f1": 0.7937146215472176
+    },
+    {
+      "threshold": 0.2,
+      "precision": 0.6803855734864075,
+      "recall": 0.9701930501930502,
+      "f1": 0.7998472116119175
+    },
+    {
+      "threshold": 0.25,
+      "precision": 0.6998787738844311,
+      "recall": 0.9362162162162162,
+      "f1": 0.8009777689690484
+    },
+    {
+      "threshold": 0.3,
+      "precision": 0.7246476237994263,
+      "recall": 0.8972200772200772,
+      "f1": 0.8017526911399393
+    },
+    {
+      "threshold": 0.35,
+      "precision": 0.7452727520065298,
+      "recall": 0.8461003861003861,
+      "f1": 0.7924924056126139
+    },
+    {
+      "threshold": 0.4,
+      "precision": 0.7715782281940332,
+      "recall": 0.7848648648648648,
+      "f1": 0.7781648355854993
+    },
+    {
+      "threshold": 0.45,
+      "precision": 0.7947976878612717,
+      "recall": 0.722007722007722,
+      "f1": 0.7566561463138303
+    },
+    {
+      "threshold": 0.5,
+      "precision": 0.8167728439669107,
+      "recall": 0.6633204633204633,
+      "f1": 0.732091873694976
+    },
+    {
+      "threshold": 0.55,
+      "precision": 0.8360673314034524,
+      "recall": 0.6021621621621621,
+      "f1": 0.7000942676302914
+    },
+    {
+      "threshold": 0.6,
+      "precision": 0.8578394598649662,
+      "recall": 0.5298069498069498,
+      "f1": 0.6550506014894023
+    },
+    {
+      "threshold": 0.65,
+      "precision": 0.8807433421129646,
+      "recall": 0.4647876447876448,
+      "f1": 0.6084714921148403
+    },
+    {
+      "threshold": 0.7,
+      "precision": 0.9011348005502063,
+      "recall": 0.40471042471042473,
+      "f1": 0.558563359266759
+    },
+    {
+      "threshold": 0.75,
+      "precision": 0.9260240472793968,
+      "recall": 0.3508880308880309,
+      "f1": 0.5089320714565716
+    },
+    {
+      "threshold": 0.8,
+      "precision": 0.9485981308411215,
+      "recall": 0.29783783783783785,
+      "f1": 0.45333803479078516
+    },
+    {
+      "threshold": 0.85,
+      "precision": 0.9672424061941632,
+      "recall": 0.2508108108108108,
+      "f1": 0.39833210694137844
+    }
+  ],
+  "classification_report_test": {
+    "0": {
+      "precision": 0.6393737166324436,
+      "recall": 0.35333333333333333,
+      "f1-score": 0.45514343139046226,
+      "support": 7050.0
+    },
+    "1": {
+      "precision": 0.7169026328862395,
+      "recall": 0.8915057915057915,
+      "f1-score": 0.7947270599573208,
+      "support": 12950.0
+    },
+    "accuracy": 0.7018,
+    "macro avg": {
+      "precision": 0.6781381747593416,
+      "recall": 0.6224195624195624,
+      "f1-score": 0.6249352456738916,
+      "support": 20000.0
+    },
+    "weighted avg": {
+      "precision": 0.6895736899067764,
+      "recall": 0.7018,
+      "f1-score": 0.6750238308875032,
+      "support": 20000.0
+    }
+  },
+  "confusion_matrix_test": {
+    "labels": [
+      "no_rockfall",
+      "rockfall"
+    ],
+    "matrix": [
+      [
+        2491,
+        4559
+      ],
+      [
+        1405,
+        11545
+      ]
+    ]
+  },
+  "majority_class_baseline_accuracy_test": 0.6475,
+  "roc_auc_test": 0.7565572003614557,
+  "pr_auc_test": 0.8589997912539606,
+  "false_positive_rate_test": 0.6466666666666666,
+  "train_shape": [
+    60000,
+    6
+  ],
+  "validation_shape": [
+    20000,
+    6
+  ],
+  "test_shape": [
+    20000,
+    6
+  ]
+}
