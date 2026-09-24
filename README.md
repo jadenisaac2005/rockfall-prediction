@@ -1,14 +1,14 @@
-# ⛏️ AI-Powered Rockfall Prediction System
+# ⛏️ Rockfall Risk Classifier (Smart India Hackathon 2025)
 
-An intelligent, end-to-end system designed to predict and prevent rockfall incidents in open-pit mines. Built for the **Smart India Hackathon**, combining a machine learning backend with a real-time, interactive web dashboard.
+An end-to-end ML pipeline — SMOTE → StandardScaler → XGBoost — that scores rockfall risk on a **synthetic** slope-stability dataset, served via FastAPI with a real-time React dashboard and Twilio SMS alerting on the highest risk tier. Built solo for **Smart India Hackathon 2025**.
 
 ## 🎯 Problem Statement
 
-AI-Based Rockfall Prediction and Alert System for Open-Pit Mines
+Demonstrate an AI-based rockfall risk-alerting pipeline end to end — data → model → API → dashboard → SMS — using synthetic slope-stability data, since no real-world sensor dataset was available to train on.
 
 ## 📊 Model & Data
 
-The model is trained on `data/synthetic_slope_stability_dataset.csv` — **synthetically generated data**, not real sensor readings from a mine. It's used to demonstrate the pipeline (SMOTE → StandardScaler → XGBoost) end-to-end. `train_model.py` trains and evaluates the exact pipeline that gets saved to `rockfall_prediction_pipeline.joblib` and served by `main.py` — nothing else is trained or averaged in. It splits the data 60/20/20 (train/validation/test, stratified), picks a classification threshold on the validation split by maximizing F1, then reports metrics once on the held-out test split. Metrics (classification report, per-threshold precision/recall/F1, confusion matrix, ROC-AUC, PR-AUC, majority-class baseline, false-positive rate) are written to `results/metrics.json` on every run — see that file for actual numbers rather than assuming any.
+The model is trained on `data/synthetic_slope_stability_dataset.csv` — **synthetically generated data**, not real sensor readings from a mine. It's used to demonstrate the pipeline (SMOTE → StandardScaler → XGBoost) end-to-end. `train_model.py` trains and evaluates the exact pipeline that gets saved to `rockfall_prediction_pipeline.joblib` and served by `main.py` — nothing else is trained or averaged in. It splits the data 60/20/20 (train/validation/test, stratified), picks a classification threshold on the validation split by maximizing F1, then reports metrics once on the held-out test split. Metrics (classification report, per-threshold precision/recall/F1, confusion matrix, ROC-AUC, PR-AUC, majority-class baseline, false-positive rate) are written to `results/metrics.json` on every run — see that file for actual numbers rather than assuming any. On the held-out test split, the served model scores **ROC-AUC 0.75**, against a majority-class (always-predict-rockfall) baseline of **64.75%**.
 
 **The validation-chosen threshold is not wired into the API.** `main.py`'s risk levels use three independent, hand-set cutoffs on the raw probability (`THRESHOLD_GUARDED=0.45`, `THRESHOLD_ELEVATED=0.70`, `THRESHOLD_CRITICAL=0.95`, defined in `main.py`'s `Settings`), adjustable at runtime via `/set-thresholds`. `train_model.py`'s F1-optimal threshold is printed and saved to `results/metrics.json` for reference only — it is not read by `main.py` and has no code-level relationship to GUARDED/ELEVATED/CRITICAL.
 
@@ -27,7 +27,7 @@ The model is trained on `data/synthetic_slope_stability_dataset.csv` — **synth
 ## 🚀 Key Features
 
 - **⚡ Real-Time Prediction API** — FastAPI backend serving model predictions in milliseconds.
-- **🧠 Machine Learning Core** — trained XGBoost model (with scaler) analyzing multi-source data to calculate rockfall probabilities.
+- **🧠 Machine Learning Core** — trained XGBoost model (with scaler) scoring rockfall probability on the synthetic slope-stability dataset.
 - **🗺️ Interactive Dashboard** — single-page React (CDN) app for "what-if" analysis, live predictions, and risk visualization.
 - **🎚️ Dynamic Risk Thresholds** — adjustable Guarded/Elevated/Critical thresholds, updated on the backend in real time.
 - **📲 Automated Alert System** — background worker sends SMS alerts via Twilio when a critical threshold is breached.
