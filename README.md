@@ -1,6 +1,6 @@
 # ⛏️ Rockfall Risk Classifier (Smart India Hackathon 2025)
 
-An end-to-end ML pipeline — SMOTE → StandardScaler → XGBoost — that scores rockfall risk on a **synthetic** slope-stability dataset, served via FastAPI with a real-time React dashboard and Twilio SMS alerting on the highest risk tier. Built for **Smart India Hackathon 2025**.
+An end-to-end ML pipeline — SMOTE → StandardScaler → XGBoost — that scores rockfall risk on a **synthetic** slope-stability dataset, served via FastAPI with a real-time React dashboard and Twilio SMS alerting on the highest risk tier. Built as the sole developer on a 3-person team, for **Smart India Hackathon 2025**.
 
 ## 🎯 Problem Statement
 
